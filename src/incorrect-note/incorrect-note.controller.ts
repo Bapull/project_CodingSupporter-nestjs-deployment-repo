@@ -35,7 +35,7 @@ export class IncorrectNoteController {
     try{
       const data = await this.incorrectNoteService.findForMento(mentoId)
       if(typeof data === 'object' && data.length === 0){
-        throw new Error('해당 id의 학생이 없거나, 아직 만든 오답노트가 없습니다.')
+        throw new Error('해당 id의 멘토가 없거나, 아직 답변한 오답노트가 없습니다.')
       }
       return {
         STATUS_CODES: HttpStatus.OK,
