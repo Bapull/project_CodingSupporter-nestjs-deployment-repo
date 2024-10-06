@@ -93,7 +93,7 @@ export class IncorrectNoteService {
     Object.assign(note,updateIncorrectNoteDto);
     await this.incorrectRepository.save(note)
   }
-
+d
   async remove(id: string) {
     const note = await this.findOne(id)
     if(!note){
