@@ -1,8 +1,8 @@
 name: Docker Image CI
 
 on:
-  pull_request_target:
-    types: [closed] 
+  pull_request:
+    types: [closed]
     branches: [main]  
   workflow_dispatch:
 
