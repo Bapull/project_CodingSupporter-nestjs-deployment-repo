@@ -1,3 +1,6 @@
+mkcert로 localhost를 https로 만드는 법
+https://msm1307.tistory.com/179
+다 따라하면 되는데, .pem 파일의 이름을 key.pem, cert.pem으로 만들어서 src폴더 바로 밖에 두면 된다.
 <p align="center">
   <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
 </p>
