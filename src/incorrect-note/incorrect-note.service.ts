@@ -4,12 +4,41 @@ import { UpdateIncorrectNoteDto } from './dto/update-incorrect-note.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { IncorrectNote } from './entities/incorrect-note.entity';
 import { Repository } from 'typeorm';
-import { response } from 'express';
 
 
 @Injectable()
 export class IncorrectNoteService {
   constructor(@InjectRepository(IncorrectNote) private readonly incorrectRepository:Repository<IncorrectNote>) {}
+
+  async folder(userId:number, userPosition:number){
+    const column = userPosition == 1 ? 'mentoId': 'studentId'
+    const count = await this.incorrectRepository
+      .createQueryBuilder('note')
+      .select('note.language')
+      .where({[column]:userId})
+      .addSelect('GROUP_CONCAT(DISTINCT note.errorType)', 'errorTypes')
+      .groupBy('note.language')
+      .getRawMany();
+    
+
+    const result = {}
+    for (let index = 0; index < count.length; index++) {
+      const element = count[index];
+      result[element['note_language']] = element['errorTypes'].split(',').map(Number);
+    }
+    return result
+  }
+  
+  async findByLanguageAndErrorType(id: number, language: string, errorType: string, userPosition: number) {
+    const column = userPosition == 1 ? 'mentoId' : 'studentId';
+    return await this.incorrectRepository.createQueryBuilder('note')
+      .select(['note.id AS id', 'note.noteName AS noteName']) 
+      .where({ [column]: id })
+      .andWhere({ language: language })
+      .andWhere({ errorType: errorType })
+      .getRawMany();
+  }
+  
 
   async create(createIncorrectNoteDto: CreateIncorrectNoteDto) {
     const incorrectNote = this.incorrectRepository.create(createIncorrectNoteDto);
