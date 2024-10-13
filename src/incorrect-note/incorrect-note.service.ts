@@ -101,4 +101,18 @@ export class IncorrectNoteService {
     }
     await this.incorrectRepository.remove(note)
   }
+
+  async graphInfo(userId: number){
+    const info = await this.incorrectRepository.createQueryBuilder('note')
+    .select('note.language')
+    .addSelect('COUNT(note.id)','count')
+    .groupBy('note.language')
+    .getRawMany()
+    const languageCount = {}
+    for (let index = 0; index < info.length; index++) {
+      const element = info[index];
+      languageCount[element['note_language']] = element['count']
+    }
+    return languageCount
+  }
 }

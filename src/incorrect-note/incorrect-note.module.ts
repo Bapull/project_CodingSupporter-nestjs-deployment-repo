@@ -8,5 +8,6 @@ import { IncorrectNote } from './entities/incorrect-note.entity';
   imports: [TypeOrmModule.forFeature([IncorrectNote])],
   controllers: [IncorrectNoteController],
   providers: [IncorrectNoteService],
+  exports: [IncorrectNoteService]
 })
 export class IncorrectNoteModule {}

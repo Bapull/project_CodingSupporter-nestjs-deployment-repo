@@ -5,11 +5,12 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { IncorrectNoteModule } from './incorrect-note/incorrect-note.module';
 import { IncorrectNote } from './incorrect-note/entities/incorrect-note.entity';
-import { AuthController } from './auth/auth.controller';
 import { AuthModule } from './auth/auth.module';
 import { UserModule } from './user/user.module';
 import { User } from './user/entities/user.entity';
 import { PassportModule } from '@nestjs/passport';
+import { AttendanceModule } from './attendance/attendance.module';
+import { Attendance } from './attendance/entities/attendance.entity';
 
 @Module({
   imports: [
@@ -25,7 +26,7 @@ import { PassportModule } from '@nestjs/passport';
         username: configService.get('DB_USERNAME'),
         password: configService.get('DB_PASSWORD'),
         database: configService.get('DB_NAME'),
-        entities: [IncorrectNote, User],
+        entities: [IncorrectNote, User,Attendance],
         synchronize: true,
       }),
       inject: [ConfigService],
@@ -33,7 +34,8 @@ import { PassportModule } from '@nestjs/passport';
     IncorrectNoteModule,
     AuthModule,
     UserModule,
-    PassportModule.register({session:true})
+    PassportModule.register({session:true}),
+    AttendanceModule,
   ],
   controllers: [AppController],
   providers: [AppService],
