@@ -57,7 +57,7 @@ export class UserController {
     if(request.user) {
       return {
         'message':'유저 그래프 정보를 성공적으로 불러왔습니다.',
-        'data': await this.incorrectNoteService.graphInfo(request.user.id)
+        'data': await this.incorrectNoteService.graphInfo(request.user.id, request.user.position)
       }
     }else {
       return {'message':'로그인이 필요합니다.'}

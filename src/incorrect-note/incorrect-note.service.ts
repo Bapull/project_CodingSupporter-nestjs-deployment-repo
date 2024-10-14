@@ -16,7 +16,7 @@ export class IncorrectNoteService {
       .createQueryBuilder('note')
       .select('note.language')
       .where({[column]:userId})
-      .addSelect('GROUP_CONCAT(DISTINCT note.errorType)', 'errorTypes')
+      .addSelect('GROUP_CONCAT(DISTINCT note.errorType) AS errorTypes')
       .groupBy('note.language')
       .getRawMany();
     
@@ -131,11 +131,13 @@ export class IncorrectNoteService {
     await this.incorrectRepository.remove(note)
   }
 
-  async graphInfo(userId: number){
+  async graphInfo(userId: number,userPosition:number){
+    const column = userPosition == 1 ? 'mentoId' : 'studentId';
     const info = await this.incorrectRepository.createQueryBuilder('note')
     .select('note.language')
-    .addSelect('COUNT(note.id)','count')
+    .addSelect('COUNT(note.id) AS count')
     .groupBy('note.language')
+    .where({[column]:userId})
     .getRawMany()
     const languageCount = {}
     for (let index = 0; index < info.length; index++) {
