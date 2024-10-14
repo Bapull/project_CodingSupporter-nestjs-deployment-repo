@@ -1,12 +1,24 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, HttpStatus, HttpException, Query, Put, UsePipes, ValidationPipe } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, HttpStatus, HttpException, Query, Put, UsePipes, ValidationPipe, Req } from '@nestjs/common';
 import { IncorrectNoteService } from './incorrect-note.service';
 import { CreateIncorrectNoteDto } from './dto/create-incorrect-note.dto';
 import { UpdateIncorrectNoteDto } from './dto/update-incorrect-note.dto';
-import { STATUS_CODES } from 'http';
 
 @Controller('incorrect-note')
 export class IncorrectNoteController {
   constructor(private readonly incorrectNoteService: IncorrectNoteService) {}
+
+  @Get('folder')
+  async folderCount(@Req() request){
+    if(request.user){
+      return {
+        message:'폴더 정보를 성공적으로 불러왔습니다.',
+        folder: await this.incorrectNoteService.folder(request.user.id, request.user.position)
+      }
+    }
+    else{
+      return {message:'로그인이 필요합니다.'}
+    }
+  }
 
   @Post()
   @UsePipes(new ValidationPipe({whitelist: true, forbidNonWhitelisted: true}))
@@ -80,6 +92,22 @@ export class IncorrectNoteController {
     
   }
 
+  @Get()
+  async findByLanguageAndErrorType(
+    @Query('language') language:string,
+    @Query('error-type') errorType:string,
+    @Req() request
+  ){
+      if(request.user){
+        return {
+          message:'오답노트 파일 정보를 성공적으로 불러왔습니다.',
+          notes: await this.incorrectNoteService.findByLanguageAndErrorType(request.user.id, language, errorType, request.user.position)
+        }
+      }
+      else{
+        return {message:'로그인이 필요합니다.'}
+      }
+    }
 
   @Get(':id')
   async findOne(@Param('id') noteId: string) {

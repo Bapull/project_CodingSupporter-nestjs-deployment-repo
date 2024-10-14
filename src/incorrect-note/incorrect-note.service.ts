@@ -4,12 +4,41 @@ import { UpdateIncorrectNoteDto } from './dto/update-incorrect-note.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { IncorrectNote } from './entities/incorrect-note.entity';
 import { Repository } from 'typeorm';
-import { response } from 'express';
 
 
 @Injectable()
 export class IncorrectNoteService {
   constructor(@InjectRepository(IncorrectNote) private readonly incorrectRepository:Repository<IncorrectNote>) {}
+
+  async folder(userId:number, userPosition:number){
+    const column = userPosition == 1 ? 'mentoId': 'studentId'
+    const count = await this.incorrectRepository
+      .createQueryBuilder('note')
+      .select('note.language')
+      .where({[column]:userId})
+      .addSelect('GROUP_CONCAT(DISTINCT note.errorType) AS errorTypes')
+      .groupBy('note.language')
+      .getRawMany();
+    
+
+    const result = {}
+    for (let index = 0; index < count.length; index++) {
+      const element = count[index];
+      result[element['note_language']] = element['errorTypes'].split(',').map(Number);
+    }
+    return result
+  }
+  
+  async findByLanguageAndErrorType(id: number, language: string, errorType: string, userPosition: number) {
+    const column = userPosition == 1 ? 'mentoId' : 'studentId';
+    return await this.incorrectRepository.createQueryBuilder('note')
+      .select(['note.id AS id', 'note.noteName AS noteName']) 
+      .where({ [column]: id })
+      .andWhere({ language: language })
+      .andWhere({ errorType: errorType })
+      .getRawMany();
+  }
+  
 
   async create(createIncorrectNoteDto: CreateIncorrectNoteDto) {
     const incorrectNote = this.incorrectRepository.create(createIncorrectNoteDto);
@@ -100,5 +129,21 @@ export class IncorrectNoteService {
       throw new Error('id값에 해당되는 노트가 없습니다.')
     }
     await this.incorrectRepository.remove(note)
+  }
+
+  async graphInfo(userId: number,userPosition:number){
+    const column = userPosition == 1 ? 'mentoId' : 'studentId';
+    const info = await this.incorrectRepository.createQueryBuilder('note')
+    .select('note.language')
+    .addSelect('COUNT(note.id) AS count')
+    .groupBy('note.language')
+    .where({[column]:userId})
+    .getRawMany()
+    const languageCount = {}
+    for (let index = 0; index < info.length; index++) {
+      const element = info[index];
+      languageCount[element['note_language']] = element['count']
+    }
+    return languageCount
   }
 }
