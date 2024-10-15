@@ -6,8 +6,8 @@ import * as session from 'express-session';
 import * as passport from 'passport'
 async function bootstrap() {
   const httpsOptions = {
-    key: fs.readFileSync('key.pem'),
-    cert: fs.readFileSync('cert.pem')
+    key: process.env.KEY_PEM,
+    cert: process.env.CERT_PEM
   }
   const app = await NestFactory.create(AppModule,{
     httpsOptions,
