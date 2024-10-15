@@ -32,8 +32,8 @@ jobs:
           fi;
           docker run -d -p 3000:3000 \
             --env-file /home/ubuntu/.env \
-            -e KEY_PEM=\${{ env.KEY_PEM }} \  
-            -e CERT_PEM=\${{ env.CERT_PEM }} \
+            -e KEY_PEM='${{ env.KEY_PEM }}' \
+            -e CERT_PEM='${{ env.CERT_PEM }}' \
             --restart always \
             --name nestjs-bapull \
             hwangjungseok/nestjs-bapull:latest"
