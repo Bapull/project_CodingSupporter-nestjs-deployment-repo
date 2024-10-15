@@ -4,6 +4,7 @@ import { ValidationPipe } from '@nestjs/common';
 import * as fs from 'fs';
 import * as session from 'express-session';
 import * as passport from 'passport'
+import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 async function bootstrap() {
   const httpsOptions = {
     key: fs.readFileSync('key.pem'),
@@ -32,6 +33,13 @@ async function bootstrap() {
     credentials: true,
   })
   app.useGlobalPipes(new ValidationPipe());
+  const config = new DocumentBuilder()
+  .setTitle('CodingSupporter')
+  .setDescription('CodingSupporterAPI')
+  .setVersion('0.1')
+  .build();
+  const document = SwaggerModule.createDocument(app, config)
+  SwaggerModule.setup('documentation',app,document)
   await app.listen(3000);
 }
 bootstrap();
