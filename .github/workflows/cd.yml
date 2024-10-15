@@ -30,4 +30,10 @@ jobs:
           if [ ! -z \"$IMAGE_ID\" ]; then
             docker images -q | grep -v $IMAGE_ID | xargs -r docker rmi;
           fi;
-          docker run -d -p 3000:3000 --env-file /home/ubuntu/.env --restart always --name nestjs-bapull hwangjungseok/nestjs-bapull:latest"
+          docker run -d -p 3000:3000 \
+            --env-file /home/ubuntu/.env \
+            -e KEY_PEM=\${{ env.KEY_PEM }} \  
+            -e CERT_PEM=\${{ env.CERT_PEM }} \
+            --restart always \
+            --name nestjs-bapull \
+            hwangjungseok/nestjs-bapull:latest"
