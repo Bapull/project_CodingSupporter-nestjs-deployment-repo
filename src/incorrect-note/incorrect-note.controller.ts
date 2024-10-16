@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Param, Delete, HttpStatus, HttpException, Query, Put, UsePipes, ValidationPipe, Req } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, Delete, HttpStatus, HttpException, Query, Put, UsePipes, ValidationPipe, Req, UnauthorizedException, BadRequestException } from '@nestjs/common';
 import { IncorrectNoteService } from './incorrect-note.service';
 import { CreateIncorrectNoteDto } from './dto/create-incorrect-note.dto';
 import { UpdateIncorrectNoteDto } from './dto/update-incorrect-note.dto';
@@ -38,7 +38,7 @@ export class IncorrectNoteController {
       }
     }
     else{
-      return {message:'로그인이 필요합니다.'}
+      throw new UnauthorizedException('로그인이 필요합니다.');
     }
   }
 
@@ -73,6 +73,13 @@ export class IncorrectNoteController {
     }
   })
   @ApiResponse({
+    status:400,
+    description:'쿼리파라미터가 필요함',
+    example:{
+      message:'쿼리파라미터가 필요합니다.'
+    }
+  })
+  @ApiResponse({
     status:401,
     description:'로그인이 필요함',
     example:{
@@ -85,6 +92,9 @@ export class IncorrectNoteController {
     @Query('error-type') errorType:string,
     @Req() request
   ){
+      if(!language || !errorType){
+        throw new BadRequestException('쿼리파라미터가 필요합니다.')
+      }
       if(request.user){
         return {
           message:'오답노트 파일 정보를 성공적으로 불러왔습니다.',
@@ -92,7 +102,7 @@ export class IncorrectNoteController {
         }
       }
       else{
-        return {message:'로그인이 필요합니다.'}
+        throw new UnauthorizedException('로그인이 필요합니다.');
       }
     }
 

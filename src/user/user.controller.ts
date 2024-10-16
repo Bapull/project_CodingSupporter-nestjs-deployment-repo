@@ -1,10 +1,10 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Req } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Req, BadRequestException, UnauthorizedException } from '@nestjs/common';
 import { UserService } from './user.service';
-import { CreateUserDto } from './dto/create-user.dto';
-import { UpdateUserDto } from './dto/update-user.dto';
 import { AttendanceService } from 'src/attendance/attendance.service';
 import { IncorrectNoteService } from 'src/incorrect-note/incorrect-note.service';
-import { ApiOperation, ApiQuery, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { ApiBody, ApiOperation, ApiQuery, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { UpdateUserNameDto } from './dto/update-user-name.dto';
+import { UpdateUserLanguageDto } from './dto/update-user-language.dto';
 
 @ApiTags('user')
 @Controller('user')
@@ -45,7 +45,7 @@ export class UserController {
         'info': request.user
       }
     }else {
-      return {'message':'로그인이 필요합니다.'}
+      throw new UnauthorizedException('로그인이 필요합니다.');
     }
   }
 
@@ -71,7 +71,7 @@ export class UserController {
         'attendance': await this.attendanceService.findAll(request.user.id)
       }
     }else {
-      return {'message':'로그인이 필요합니다.'}
+      throw new UnauthorizedException('로그인이 필요합니다.');
     }
   }
 
@@ -100,7 +100,7 @@ export class UserController {
         'message':'출석체크를 완료했습니다.'
       }
     }else {
-      return {'message':'로그인이 필요합니다.'}
+      throw new UnauthorizedException('로그인이 필요합니다.');
     }
   }
 
@@ -130,8 +130,90 @@ export class UserController {
         'data': await this.incorrectNoteService.graphInfo(request.user.id, request.user.position)
       }
     }else {
-      return {'message':'로그인이 필요합니다.'}
+      throw new UnauthorizedException('로그인이 필요합니다.');
     }
   }
 
+  @ApiOperation({summary:'유저 이름 수정'})
+  @ApiBody({
+    schema:{
+      type:'object',
+      properties:{
+        name:{
+          type: 'string',
+          description:'바꿀 유저 이름'
+        }
+      }
+    }
+  })
+  @ApiResponse({
+    status: 200,
+    description: '이름변경 완료',
+    example:{message:'이름이 변경되었습니다.'}
+  })
+  @ApiResponse({
+    status: 401,
+    description: '로그인 필요',
+    example:{message:'로그인이 필요합니다.'}
+  })
+  @Patch('name')
+  async changeName(@Req() request, @Body() dto:UpdateUserNameDto){
+    if(request.user) {
+      await this.userService.updateName(request.user.id, dto)
+      return {
+        'message':'유저의 이름을 변경했습니다.',
+      }
+    }else {
+      throw new UnauthorizedException('로그인이 필요합니다.');
+    }
+  }
+
+  @ApiOperation({summary:'유저 사용 언어 수정'})
+  @ApiBody({
+    schema:{
+      type:'object',
+      properties:{
+        language:{
+          type: 'string',
+          description:'바꿀 유저 언어 배열',
+          example:"['Java']"
+        }
+      }
+    }
+  })
+  @ApiResponse({
+    status: 200,
+    description: '언어변경 완료',
+    example:{message:'유저의 언어를 변경했습니다.'}
+  })
+  @ApiResponse({
+    status: 400,
+    description: 'body가 올바르지 않은 경우',
+    example:{
+      message: "useLanguage는 문자열 배열을 따옴표로 감싼 형태여야 합니다.",
+      error: "Bad Request",
+      statusCode: 400
+    }
+  })
+  @ApiResponse({
+    status: 401,
+    description: '로그인 필요',
+    example:{message:'로그인이 필요합니다.'}
+  })
+  @Patch('language')
+  async changeLanguage(@Req() request, @Body() dto:UpdateUserLanguageDto){
+    if(request.user) {
+      try{
+        JSON.parse(dto.useLanguage)
+        await this.userService.updateLanguage(request.user.id, dto)
+        return {
+          'message':'유저의 언어를 변경했습니다.',
+        }
+      }catch(e){
+        throw new BadRequestException('useLanguage는 문자열 배열을 따옴표로 감싼 형태여야 합니다.');
+      }
+    }else {
+      throw new UnauthorizedException('로그인이 필요합니다.');
+    }
+  }
 }
