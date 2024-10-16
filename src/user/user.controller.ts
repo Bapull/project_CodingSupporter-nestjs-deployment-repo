@@ -216,4 +216,27 @@ export class UserController {
       throw new UnauthorizedException('로그인이 필요합니다.');
     }
   }
+
+  @ApiOperation({summary:'유저 역할 변경(튜터에서 튜티로, 튜티에서 튜터로)'})
+  @ApiResponse({
+    status: 200,
+    description: '역할변경 완료',
+    example:{message:'유저의 역할을 변경했습니다.'}
+  })
+  @ApiResponse({
+    status: 401,
+    description: '로그인 필요',
+    example:{message:'로그인이 필요합니다.'}
+  })
+  @Patch('position')
+  async changePosition(@Req() request){
+    if(request.user) {
+      await this.userService.updatePosition(request.user.id)
+      return {
+        'message':'유저의 역할을 변경했습니다.',
+      }
+    }else {
+      throw new UnauthorizedException('로그인이 필요합니다.');
+    }
+  }
 }
