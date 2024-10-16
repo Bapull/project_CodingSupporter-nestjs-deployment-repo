@@ -1,23 +1,47 @@
 import { Injectable } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
-import { UpdateUserDto } from './dto/update-user.dto';
+import { UpdateUserNameDto } from './dto/update-user-name.dto';
+import { UpdateUserLanguageDto } from './dto/update-user-language.dto';
+
+import { AuthService } from 'src/auth/auth.service';
+import { InjectRepository } from '@nestjs/typeorm';
+import { User } from './entities/user.entity';
+import { Repository } from 'typeorm';
 
 @Injectable()
 export class UserService {
-  create(createUserDto: CreateUserDto) {
-    return 'This action adds a new user';
+  constructor(@InjectRepository(User) private readonly userRepository:
+  Repository<User>){}
+  
+  async createNewUser(createUserDto: CreateUserDto) {
+    const newUser = this.userRepository.create(createUserDto)
+    return this.userRepository.save(newUser)
+  }
+  
+  async findOneByGoogleId(id:string){
+    return await this.userRepository.findOneBy({googleId: id})
   }
 
-  findAll() {
-    return `This action returns all user`;
+
+  async findOne(id: number) {
+    return await this.userRepository.findOneBy({id:id})
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} user`;
+  async updateName(id: number, updateUserDto: UpdateUserNameDto) {
+    const user = await this.findOne(id)
+    if(!user){
+      throw new Error('해당 유저를 찾지 못했습니다.')
+    }
+    Object.assign(user,updateUserDto)
+    return await this.userRepository.save(user)
   }
-
-  update(id: number, updateUserDto: UpdateUserDto) {
-    return `This action updates a #${id} user`;
+  async updateLanguage(id: number, updateUserDto: UpdateUserLanguageDto) {
+    const user = await this.findOne(id)
+    if(!user){
+      throw new Error('해당 유저를 찾지 못했습니다.')
+    }
+    Object.assign(user,updateUserDto)
+    return await this.userRepository.save(user)
   }
 
   remove(id: number) {
