@@ -2,12 +2,62 @@ import { Controller, Get, Post, Body, Param, Delete, HttpStatus, HttpException, 
 import { IncorrectNoteService } from './incorrect-note.service';
 import { CreateIncorrectNoteDto } from './dto/create-incorrect-note.dto';
 import { UpdateIncorrectNoteDto } from './dto/update-incorrect-note.dto';
-import { ApiOperation, ApiQuery, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { ApiBody, ApiOperation, ApiProperty, ApiQuery, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { callModel } from 'src/lang-chain/langChain';
+import { string } from 'joi';
+import { GenerateIncorrectNoteDto } from './dto/generate-incorrect-note.dto';
 
 @ApiTags('incorrect-note')
 @Controller('incorrect-note')
 export class IncorrectNoteController {
   constructor(private readonly incorrectNoteService: IncorrectNoteService) {}
+
+  @ApiOperation({summary:'오답노트 생성하기'})
+  @ApiResponse({
+    status: 201,
+    description:'오답노트 생성완료',
+    example:{
+      message: '오답노트를 생성했습니다.',
+      data: {
+        language: "C",
+        errorType: 2,
+        mdFile: '오답노트 텍스트'
+      }
+    }
+  })
+  @ApiBody({
+    type:GenerateIncorrectNoteDto
+  })
+  @ApiResponse({
+    status:401,
+    description:'로그인이 필요함',
+    example:{
+      message:'로그인이 필요합니다.'
+    }
+  })
+  @Post('generate')
+  async postTest(
+    @Body() dto:GenerateIncorrectNoteDto,
+    @Req() request
+  ){
+    if(request.user){
+      const {errorType, language, note} =  await callModel(dto.error, dto.code, dto.question)
+      return {
+        message: '오답노트를 성공적으로 생성했습니다.',
+        data: {
+          language:language,
+          errorType:errorType,
+          mdFile:note
+        }
+      }
+    }else{
+      throw new UnauthorizedException('로그인이 필요합니다.');
+    }
+    
+  }
+
+
+
 
   @ApiOperation({summary:'폴더 정보 불러오기'})
   @ApiResponse({
