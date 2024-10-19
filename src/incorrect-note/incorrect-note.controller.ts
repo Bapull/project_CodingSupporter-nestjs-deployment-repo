@@ -5,6 +5,7 @@ import { UpdateIncorrectNoteDto } from './dto/update-incorrect-note.dto';
 import { ApiBody, ApiOperation, ApiProperty, ApiQuery, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { callModel } from 'src/lang-chain/langChain';
 import { string } from 'joi';
+import { GenerateIncorrectNoteDto } from './dto/generate-incorrect-note.dto';
 
 @ApiTags('incorrect-note')
 @Controller('incorrect-note')
@@ -24,6 +25,9 @@ export class IncorrectNoteController {
       }
     }
   })
+  @ApiBody({
+    type:GenerateIncorrectNoteDto
+  })
   @ApiResponse({
     status:401,
     description:'로그인이 필요함',
@@ -33,13 +37,11 @@ export class IncorrectNoteController {
   })
   @Post('generate')
   async postTest(
-    @Body('code') code:string, 
-    @Body('error') error:string,
-    @Body('question') question:string,
+    @Body() dto:GenerateIncorrectNoteDto,
     @Req() request
   ){
     if(request.user){
-      const {errorType, language, note} =  await callModel(error, code, question)
+      const {errorType, language, note} =  await callModel(dto.error, dto.code, dto.question)
       return {
         message: '오답노트를 성공적으로 생성했습니다.',
         data: {

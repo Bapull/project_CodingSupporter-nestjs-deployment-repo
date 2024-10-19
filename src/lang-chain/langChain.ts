@@ -5,7 +5,7 @@ import { PromptTemplate, FewShotPromptTemplate } from "@langchain/core/prompts";
 import { response } from "express";
 const model = new ChatOpenAI({
   model:'gpt-4',
-  openAIApiKey:process.env.OPEN_API_KEY
+  openAIApiKey:'your-api-key'
 });
 const parser = new StringOutputParser();
 // const messages = [
