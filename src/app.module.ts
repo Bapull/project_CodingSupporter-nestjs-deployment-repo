@@ -11,6 +11,7 @@ import { User } from './user/entities/user.entity';
 import { PassportModule } from '@nestjs/passport';
 import { AttendanceModule } from './attendance/attendance.module';
 import { Attendance } from './attendance/entities/attendance.entity';
+import { LangChainModule } from './lang-chain/lang-chain.module';
 
 @Module({
   imports: [
@@ -36,6 +37,7 @@ import { Attendance } from './attendance/entities/attendance.entity';
     UserModule,
     PassportModule.register({session:true}),
     AttendanceModule,
+    LangChainModule,
   ],
   controllers: [AppController],
   providers: [AppService],
