@@ -34,6 +34,8 @@ jobs:
             --env-file /home/ubuntu/.env \
             -e KEY_PEM='${{ secrets.KEY_PEM }}' \
             -e CERT_PEM='${{ secrets.CERT_PEM }}' \
+            -e GOOGLE_CLIENT_ID='${{ secrets.GOOGLE_CLIENT_ID }}' \
+            -e GOOGLE_SECRET='${{ secrets.GOOGLE_SECRET }}' \
             --restart always \
             --name nestjs-bapull \
             hwangjungseok/nestjs-bapull:latest"
