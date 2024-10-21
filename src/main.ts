@@ -5,19 +5,17 @@ import * as fs from 'fs';
 import * as session from 'express-session';
 import * as passport from 'passport'
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
-
-// 로깅, llm을 스트리밍(getReader)
 async function bootstrap() {
   const httpsOptions = {
-    key:  fs.readFileSync('key.pem'),
-    cert:  fs.readFileSync('cert.pem'),
+    key:  process.env.KEY_PEM,
+    cert:  process.env.CERT_PEM,
   }
   const app = await NestFactory.create(AppModule,{
     httpsOptions,
   });
   app.use(
     session({
-      secret: process.env.SESSION_SECRET,
+      secret: 'itisajusttestsecretkey',
       resave:false,
       saveUninitialized:false,
       cookie:{
@@ -29,7 +27,7 @@ async function bootstrap() {
   app.use(passport.initialize());
   app.use(passport.session());
   app.enableCors({
-    origin: 'https://localhost:5173',
+    origin: 'https://15.164.188.2:5173',
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
     allowedHeaders: 'Content-Type, Accept',
     credentials: true,
