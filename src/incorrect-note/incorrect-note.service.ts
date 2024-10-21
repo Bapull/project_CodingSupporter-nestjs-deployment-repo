@@ -115,7 +115,9 @@ export class IncorrectNoteService {
   }
 
   async update(id: string, updateIncorrectNoteDto: UpdateIncorrectNoteDto) {
-    const note = await this.findOne(id)
+    const note = await this.incorrectRepository.findOneBy(
+      {id:parseInt(id)}
+    );
     if(!note){
       throw new Error('id값에 해당되는 노트가 없습니다.')
     }
@@ -124,7 +126,9 @@ export class IncorrectNoteService {
   }
 
   async remove(id: string) {
-    const note = await this.findOne(id)
+    const note = await this.incorrectRepository.findOneBy(
+      {id:parseInt(id)}
+    );
     if(!note){
       throw new Error('id값에 해당되는 노트가 없습니다.')
     }

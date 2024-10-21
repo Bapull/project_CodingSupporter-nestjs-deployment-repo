@@ -20,13 +20,8 @@ export class UserService {
     return await this.userRepository.findOneBy({googleId: id})
   }
 
-
-  async findOne(id: number) {
-    return await this.userRepository.findOneBy({id:id})
-  }
-
   async updateName(id: number, updateUserDto: UpdateUserNameDto) {
-    const user = await this.findOne(id)
+    const user = await this.userRepository.findOneBy({id:id})
     if(!user){
       throw new Error('해당 유저를 찾지 못했습니다.')
     }
@@ -34,7 +29,7 @@ export class UserService {
     return await this.userRepository.save(user)
   }
   async updateLanguage(id: number, updateUserDto: UpdateUserLanguageDto) {
-    const user = await this.findOne(id)
+    const user = await this.userRepository.findOneBy({id:id})
     if(!user){
       throw new Error('해당 유저를 찾지 못했습니다.')
     }
@@ -42,7 +37,7 @@ export class UserService {
     return await this.userRepository.save(user)
   }
   async updatePosition(id: number) {
-    const user = await this.findOne(id)
+    const user = await this.userRepository.findOneBy({id:id})
     if(!user){
       throw new Error('해당 유저를 찾지 못했습니다.')
     }
@@ -52,10 +47,5 @@ export class UserService {
       Object.assign(user,{position:1})
     }
     return await this.userRepository.save(user)
-  }
-
-
-  remove(id: number) {
-    return `This action removes a #${id} user`;
   }
 }
