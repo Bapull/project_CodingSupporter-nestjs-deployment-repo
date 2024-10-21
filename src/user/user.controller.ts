@@ -1,13 +1,15 @@
-import { Controller, Get, Post, Body, Patch, Req, BadRequestException, UnauthorizedException } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Req, BadRequestException, UnauthorizedException, HttpStatus } from '@nestjs/common';
 import { UserService } from './user.service';
 import { AttendanceService } from 'src/attendance/attendance.service';
 import { IncorrectNoteService } from 'src/incorrect-note/incorrect-note.service';
 import { ApiBody, ApiOperation, ApiQuery, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { UpdateUserNameDto } from './dto/update-user-name.dto';
 import { UpdateUserLanguageDto } from './dto/update-user-language.dto';
+import { ApiCommonResponses } from 'src/utils/swagger';
 
 @ApiTags('user')
 @Controller('user')
+@ApiCommonResponses()
 export class UserController {
   constructor(private readonly userService: UserService,
     private readonly attendanceService: AttendanceService,
@@ -16,7 +18,7 @@ export class UserController {
 
   @ApiOperation({summary:'유저 정보 호출'})
   @ApiResponse({
-    status:200,
+    status:HttpStatus.OK,
     description:"유저정보",
     example:{
       'message':'유저 정보를 성공적으로 불러왔습니다.',
@@ -28,13 +30,6 @@ export class UserController {
         "profilePicture": "https://lh3.googleusercontent.com/a/ACg8ocIzUC27IVCdapdhE5L-jYipixipbLvP1u6DeXFnl3QzIqDV2w=s96-c",
         "googleId": "107458270040176628474"
       }
-    }
-  })
-  @ApiResponse({
-    status:401,
-    description:'로그인 필요',
-    example:{
-      'message':'로그인이 필요합니다.'
     }
   })
   @Get('info')
@@ -51,7 +46,7 @@ export class UserController {
 
   @ApiOperation({ summary: '해당 유저의 모든 출석정보' })
   @ApiResponse({
-    status: 200,
+    status: HttpStatus.OK,
     description: '출석정보',
     example:{
       message:'출석체크 정보를 불러왔습니다.',
@@ -77,16 +72,11 @@ export class UserController {
 
   @ApiOperation({ summary: '출석체크 추가' })
   @ApiResponse({
-    status: 201,
+    status: HttpStatus.CREATED,
     description: '출석체크 완료',
     example:{
       message:'출석체크를 완료했습니다.',
     }
-  })
-  @ApiResponse({
-    status: 401,
-    description: '로그인 필요',
-    example:{message:'로그인이 필요합니다.'}
   })
   @Post('attendance')
   async makeAttendance(@Req() request){
@@ -106,7 +96,7 @@ export class UserController {
 
   @ApiOperation({ summary: '그래프 정보 호출' })
   @ApiResponse({
-    status: 200,
+    status: HttpStatus.OK,
     description: '그래프 정보 호출 완료',
     example:{
       message:'유저 그래프 정보를 성공적으로 불러왔습니다.',
@@ -116,11 +106,6 @@ export class UserController {
         javascript: 8
       }
     }
-  })
-  @ApiResponse({
-    status: 401,
-    description: '로그인 필요',
-    example:{message:'로그인이 필요합니다.'}
   })
   @Get('graph')
   async graphInfo(@Req() request) {
@@ -147,14 +132,9 @@ export class UserController {
     }
   })
   @ApiResponse({
-    status: 200,
+    status: HttpStatus.OK,
     description: '이름변경 완료',
     example:{message:'이름이 변경되었습니다.'}
-  })
-  @ApiResponse({
-    status: 401,
-    description: '로그인 필요',
-    example:{message:'로그인이 필요합니다.'}
   })
   @Patch('name')
   async changeName(@Req() request, @Body() dto:UpdateUserNameDto){
@@ -182,7 +162,7 @@ export class UserController {
     }
   })
   @ApiResponse({
-    status: 200,
+    status: HttpStatus.OK,
     description: '언어변경 완료',
     example:{message:'유저의 언어를 변경했습니다.'}
   })
@@ -194,11 +174,6 @@ export class UserController {
       error: "Bad Request",
       statusCode: 400
     }
-  })
-  @ApiResponse({
-    status: 401,
-    description: '로그인 필요',
-    example:{message:'로그인이 필요합니다.'}
   })
   @Patch('language')
   async changeLanguage(@Req() request, @Body() dto:UpdateUserLanguageDto){
@@ -219,14 +194,9 @@ export class UserController {
 
   @ApiOperation({summary:'유저 역할 변경(튜터에서 튜티로, 튜티에서 튜터로)'})
   @ApiResponse({
-    status: 200,
+    status: HttpStatus.OK,
     description: '역할변경 완료',
     example:{message:'유저의 역할을 변경했습니다.'}
-  })
-  @ApiResponse({
-    status: 401,
-    description: '로그인 필요',
-    example:{message:'로그인이 필요합니다.'}
   })
   @Patch('position')
   async changePosition(@Req() request){

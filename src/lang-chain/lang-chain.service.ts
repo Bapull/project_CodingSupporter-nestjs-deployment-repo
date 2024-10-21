@@ -60,7 +60,7 @@ export class LangChainService {
       `
     )
   }
-  async callModel(error:string, code:string, question?:string) {
+  async callModel(code:string, question?:string) {
    
     const languageResult = await this.parser.invoke( await this.model.invoke(
       await this.codePrompt.format({code:code})
