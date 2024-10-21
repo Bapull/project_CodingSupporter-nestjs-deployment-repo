@@ -3,14 +3,15 @@ import { IncorrectNoteService } from './incorrect-note.service';
 import { CreateIncorrectNoteDto } from './dto/create-incorrect-note.dto';
 import { UpdateIncorrectNoteDto } from './dto/update-incorrect-note.dto';
 import { ApiBody, ApiOperation, ApiProperty, ApiQuery, ApiResponse, ApiTags } from '@nestjs/swagger';
-import { callModel } from 'src/lang-chain/langChain';
-import { string } from 'joi';
 import { GenerateIncorrectNoteDto } from './dto/generate-incorrect-note.dto';
+import { LangChainService } from 'src/lang-chain/lang-chain.service';
 
 @ApiTags('incorrect-note')
 @Controller('incorrect-note')
 export class IncorrectNoteController {
-  constructor(private readonly incorrectNoteService: IncorrectNoteService) {}
+  constructor(private readonly incorrectNoteService: IncorrectNoteService,
+    private readonly langChainService: LangChainService
+  ) {}
 
   @ApiOperation({summary:'오답노트 생성하기'})
   @ApiResponse({
@@ -41,13 +42,13 @@ export class IncorrectNoteController {
     @Req() request
   ){
     if(request.user){
-      const {errorType, language, note} =  await callModel(dto.error, dto.code, dto.question)
+      const {json, mdFile} =  await this.langChainService.callModel(dto.error, dto.code, dto.question)
       return {
         message: '오답노트를 성공적으로 생성했습니다.',
         data: {
-          language:language,
-          errorType:errorType,
-          mdFile:note
+          language:json.match(/1\.\s*(\w+)/)[1],
+          errorType:json.match(/4\.\s*(\d)/)[1],
+          mdFile:mdFile
         }
       }
     }else{
