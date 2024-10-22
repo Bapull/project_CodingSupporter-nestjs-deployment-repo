@@ -6,7 +6,7 @@ import { ApiBody, ApiOperation, ApiQuery, ApiResponse, ApiTags } from '@nestjs/s
 import { GenerateIncorrectNoteDto } from './dto/generate-incorrect-note.dto';
 import { LangChainService } from 'src/lang-chain/lang-chain.service';
 import { ApiCommonResponses, ApiErrorResponse } from 'src/utils/swagger';
-
+import { SaveIncorrectNoteDto } from './dto/save-incorrect-note.dto';
 
 
 
@@ -18,6 +18,29 @@ export class IncorrectNoteController {
     private readonly incorrectNoteService: IncorrectNoteService,
     private readonly langChainService: LangChainService
   ) {}
+
+  @ApiOperation({summary:'오답노트 저장하기'})
+  @ApiBody({type: SaveIncorrectNoteDto})
+  @ApiResponse({
+    status: HttpStatus.CREATED,
+    description:'오답노트 저장완료',
+    schema: {
+      example: {
+        message: '오답노트를 저장했습니다.'
+      }
+    }
+  })
+  @Post('save')
+  async saveNote(@Body() dto: SaveIncorrectNoteDto, @Req() request){
+    if(request.user){
+      await this.incorrectNoteService.saveNote(dto, request.user.id)
+      return {
+        message: '오답노트를 저장했습니다.'
+      }
+    }else{
+      throw new UnauthorizedException('로그인이 필요합니다.');
+    }
+  }
 
   @ApiOperation({summary:'오답노트 생성하기'})
   @ApiResponse({

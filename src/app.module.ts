@@ -12,6 +12,8 @@ import { PassportModule } from '@nestjs/passport';
 import { AttendanceModule } from './attendance/attendance.module';
 import { Attendance } from './attendance/entities/attendance.entity';
 import { LangChainModule } from './lang-chain/lang-chain.module';
+import { S3ServiceService } from './s3-service/s3-service.service';
+import { S3ServiceModule } from './s3-service/s3-service.module';
 
 @Module({
   imports: [
@@ -38,8 +40,9 @@ import { LangChainModule } from './lang-chain/lang-chain.module';
     PassportModule.register({session:true}),
     AttendanceModule,
     LangChainModule,
+    S3ServiceModule,
   ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [AppService, S3ServiceService],
 })
 export class AppModule {}

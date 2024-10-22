@@ -6,7 +6,7 @@ export class User {
   id:number;
   @Column()
   name:string;
-  @Column()
+  @Column({nullable: true})
   useLanguage: string;
   @Column()
   position: number;
