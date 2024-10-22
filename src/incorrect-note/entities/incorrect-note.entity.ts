@@ -4,7 +4,7 @@ import { Column, Entity, PrimaryGeneratedColumn } from "typeorm";
 export class IncorrectNote {
   @PrimaryGeneratedColumn()
   id: number;
-  @Column()
+  @Column({nullable: true})
   mentoId: number;
   @Column()
   studentId: number;
@@ -14,6 +14,6 @@ export class IncorrectNote {
   language: string;
   @Column()
   noteName: string; 
-  @Column()
+  @Column({nullable: true})
   chatName: string;
 }

@@ -4,11 +4,28 @@ import { UpdateIncorrectNoteDto } from './dto/update-incorrect-note.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { IncorrectNote } from './entities/incorrect-note.entity';
 import { Repository } from 'typeorm';
+import { S3ServiceService } from 'src/s3-service/s3-service.service';
+import { SaveIncorrectNoteDto } from './dto/save-incorrect-note.dto';
 
 
 @Injectable()
 export class IncorrectNoteService {
-  constructor(@InjectRepository(IncorrectNote) private readonly incorrectRepository:Repository<IncorrectNote>) {}
+  constructor(@InjectRepository(IncorrectNote) private readonly incorrectRepository:Repository<IncorrectNote>,
+    private readonly s3Service: S3ServiceService
+  ) {}
+
+  async saveNote(dto: SaveIncorrectNoteDto, userId: number){
+    const mdFile = await this.s3Service.uploadMdFile(dto.mdFile)
+    const newNote =await this.incorrectRepository.create({
+      language: dto.language,
+      errorType: parseInt(dto.errorType),
+      studentId: userId,
+      mentoId: null,
+      noteName: mdFile.Key,
+      chatName: null
+    })
+    return await this.incorrectRepository.save(newNote)
+  }
 
   async folder(userId:number, userPosition:number){
     const column = userPosition == 1 ? 'mentoId': 'studentId'
