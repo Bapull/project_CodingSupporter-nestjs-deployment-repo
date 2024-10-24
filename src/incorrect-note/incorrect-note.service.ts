@@ -1,4 +1,4 @@
-import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
+import { ForbiddenException, HttpException, HttpStatus, Injectable, NotFoundException } from '@nestjs/common';
 import { CreateIncorrectNoteDto } from './dto/create-incorrect-note.dto';
 import { UpdateIncorrectNoteDto } from './dto/update-incorrect-note.dto';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -14,17 +14,40 @@ export class IncorrectNoteService {
     private readonly s3Service: S3ServiceService
   ) {}
 
-  async saveNote(dto: SaveIncorrectNoteDto, userId: number){
-    const mdFile = await this.s3Service.uploadMdFile(dto.mdFile)
-    const newNote =await this.incorrectRepository.create({
+  async saveNote(dto: SaveIncorrectNoteDto, userId: number) {
+    const noteName = dto.mdFile.match(/-------------------\n(.*)\n/)[1].trim();
+    const mdFile = await this.s3Service.uploadMdFile(dto.mdFile,noteName);
+    const newNote = await this.incorrectRepository.create({
       language: dto.language,
       errorType: parseInt(dto.errorType),
       studentId: userId,
       mentoId: null,
-      noteName: mdFile.Key,
+      noteName: mdFile.Key.replace('incorrect-notes/',''),
       chatName: null
     })
     return await this.incorrectRepository.save(newNote)
+  }
+
+  async downloadMdFile(fileName:string, userId:number, userPosition:number){
+    const note = await this.incorrectRepository.findOneBy({
+      noteName:fileName
+    })
+    if(!note){
+      throw new NotFoundException('해당이름의 노트가 없습니다.')
+    }
+    if(userPosition == 1){
+      if(note.mentoId != userId){
+        throw new ForbiddenException('해당 노트를 조회할 권한이 없습니다.')
+      }
+    }else{
+      if(note.studentId != userId){
+        throw new ForbiddenException('해당 노트를 조회할 권한이 없습니다.')
+      }
+    }
+    return {
+      noteInfo:note,
+      mdFile:await this.s3Service.downloadMdFile(fileName)
+    }
   }
 
   async folder(userId:number, userPosition:number){

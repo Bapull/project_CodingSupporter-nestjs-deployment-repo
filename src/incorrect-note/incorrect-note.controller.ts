@@ -76,6 +76,54 @@ export class IncorrectNoteController {
     
   }
 
+  @ApiOperation({summary:"오답노트 상세 정보 불러오기"})
+  @ApiErrorResponse()
+  @ApiQuery({name:'note-name', example:'오답노트 파일명'})
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description:'오답노트 상세 정보',
+    schema: {
+      example: {
+        message:'오답노트 상세 정보를 성공적으로 불러왔습니다.',
+        noteInfo: {
+          id: 47,
+          mentoId: 1,
+          studentId: 4,
+          errorType: 2,
+          language: "C",
+          noteName: "4f87cd39-3497-4d78-bee4-66b0a642c338.md",
+          chatName: null
+        },
+        mdFile: "# 에러 발생\n-------------------\n정수형 변수를 출력할 때 실수형 변수 출력 형식 지정자를 사용했습니다.\n\n# 원인 코드\n-------------------\n```c\nprintf(\"%f\",a);\n```\n\n# 해결 방안\n-------------------\n```c\n#include <stdio.h>\nint main() {\nint a = 10;\nprintf(\"%d\",a);\nreturn 0;}\n```\n\n# 참고\n-------------------\nC에서 다양한 데이터 타입과 이에 맞는 출력 형식 지정자에 대한 지식이 필요합니다."
+      }
+    }
+  })
+  @Get('s3')
+  async getS3File(@Query('note-name') noteName:string, @Req() request){
+    if(request.user){
+      try{
+        const {noteInfo, mdFile} = await this.incorrectNoteService.downloadMdFile(noteName, request.user.id, request.user.position)
+        return {
+          message:'오답노트 상세 정보를 성공적으로 불러왔습니다.',
+          noteInfo:noteInfo,
+          mdFile:mdFile.Body.toString()
+        }
+      }catch(error){
+        throw new HttpException(
+          {
+            STATUS_CODES: HttpStatus.BAD_REQUEST,
+            message: '오답노트 정보를 불러오지 못 했습니다.',
+            error: error.message,
+          },
+          HttpStatus.BAD_REQUEST,
+        )
+      }
+    }else{
+      throw new UnauthorizedException('로그인이 필요합니다.');
+    }
+       
+  }
+  
   @ApiOperation({summary:'폴더 정보 불러오기'})
   @ApiResponse({
     status: HttpStatus.OK,
@@ -150,32 +198,32 @@ export class IncorrectNoteController {
     }
   }
 
-  @ApiOperation({summary:'(테스트용)오답노트 아이디로 오답노트 불러오기'})
-  @ApiErrorResponse()
-  @Get(':id')
-  async findOne(@Param('id') noteId: string) {
-    try{
-      const data = await this.incorrectNoteService.findOne(noteId);
-      if(!data){
-        throw new Error('id값에 해당하는 오답노트가 없습니다.')
-      }
-      return {
-        STATUS_CODES: HttpStatus.OK,
-        message: '오답노트 정보를 성공적으로 불러왔습니다.',
-        data: data,
-      }
-    }catch(error){
-      throw new HttpException(
-        {
-          STATUS_CODES: HttpStatus.BAD_REQUEST,
-          message: '오답노트 정보를 불러오지 못 했습니다.',
-          error: error.message,
-        },
-        HttpStatus.BAD_REQUEST,
-      )
-    }
+  // @ApiOperation({summary:'(테스트용)오답노트 아이디로 오답노트 불러오기'})
+  // @ApiErrorResponse()
+  // @Get(':id')
+  // async findOne(@Param('id') noteId: string) {
+  //   try{
+  //     const data = await this.incorrectNoteService.findOne(noteId);
+  //     if(!data){
+  //       throw new Error('id값에 해당하는 오답노트가 없습니다.')
+  //     }
+  //     return {
+  //       STATUS_CODES: HttpStatus.OK,
+  //       message: '오답노트 정보를 성공적으로 불러왔습니다.',
+  //       data: data,
+  //     }
+  //   }catch(error){
+  //     throw new HttpException(
+  //       {
+  //         STATUS_CODES: HttpStatus.BAD_REQUEST,
+  //         message: '오답노트 정보를 불러오지 못 했습니다.',
+  //         error: error.message,
+  //       },
+  //       HttpStatus.BAD_REQUEST,
+  //     )
+  //   }
     
-  }
+  // }
 
   @ApiOperation({summary:"(테스트용)오답노트 수정"})
   @ApiErrorResponse()
@@ -299,4 +347,7 @@ export class IncorrectNoteController {
     }
     
   }
+
+  
+
 }
