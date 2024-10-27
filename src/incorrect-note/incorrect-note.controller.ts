@@ -4,15 +4,16 @@ import { CreateIncorrectNoteDto } from './dto/create-incorrect-note.dto';
 import { UpdateIncorrectNoteDto } from './dto/update-incorrect-note.dto';
 import { ApiBody, ApiOperation, ApiQuery, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { GenerateIncorrectNoteDto } from './dto/generate-incorrect-note.dto';
-import { LangChainService } from 'src/lang-chain/lang-chain.service';
-import { ApiCommonResponses, ApiErrorResponse } from 'src/utils/swagger';
+import { LangChainService } from 'src/lang-chain/lang-chain.service'
 import { SaveIncorrectNoteDto } from './dto/save-incorrect-note.dto';
+import { ApiUnauthorizedResponses, ApiErrorResponse, ApiResponseMessage } from 'src/utils/swagger';
 
 
 
 @ApiTags('incorrect-note')
 @Controller('incorrect-note')
-@ApiCommonResponses()
+@ApiUnauthorizedResponses()
+@ApiErrorResponse('요청을 처리하지 못했습니다.')
 export class IncorrectNoteController {
   constructor(
     private readonly incorrectNoteService: IncorrectNoteService,
@@ -21,15 +22,7 @@ export class IncorrectNoteController {
 
   @ApiOperation({summary:'오답노트 저장하기'})
   @ApiBody({type: SaveIncorrectNoteDto})
-  @ApiResponse({
-    status: HttpStatus.CREATED,
-    description:'오답노트 저장완료',
-    schema: {
-      example: {
-        message: '오답노트를 저장했습니다.'
-      }
-    }
-  })
+  @ApiResponseMessage('오답노트 저장완료', HttpStatus.CREATED, '오답노트를 저장했습니다.')
   @Post('save')
   async saveNote(@Body() dto: SaveIncorrectNoteDto, @Req() request){
     if(request.user){
@@ -77,7 +70,6 @@ export class IncorrectNoteController {
   }
 
   @ApiOperation({summary:"오답노트 상세 정보 불러오기"})
-  @ApiErrorResponse()
   @ApiQuery({name:'note-name', example:'오답노트 파일명'})
   @ApiResponse({
     status: HttpStatus.OK,
@@ -169,15 +161,7 @@ export class IncorrectNoteController {
       }
     }
   })
-  @ApiResponse({
-    status: HttpStatus.BAD_REQUEST,
-    description:'쿼리파라미터가 필요함',
-    schema: {
-      example: {
-        message:'쿼리파라미터가 필요합니다.'
-      }
-    }
-  })
+  @ApiResponseMessage('쿼리파라미터가 필요함', HttpStatus.BAD_REQUEST, '쿼리파라미터가 필요합니다.')
   @Get()
   async findByLanguageAndErrorType(
     @Query('language') language: string,
@@ -199,7 +183,6 @@ export class IncorrectNoteController {
   }
 
   // @ApiOperation({summary:'(테스트용)오답노트 아이디로 오답노트 불러오기'})
-  // @ApiErrorResponse()
   // @Get(':id')
   // async findOne(@Param('id') noteId: string) {
   //   try{
@@ -226,7 +209,6 @@ export class IncorrectNoteController {
   // }
 
   @ApiOperation({summary:"(테스트용)오답노트 수정"})
-  @ApiErrorResponse()
   @Put(':id')
   @UsePipes(new ValidationPipe({whitelist: true, forbidNonWhitelisted: true}))
   async update(@Param('id') id: string, @Body() updateIncorrectNoteDto: UpdateIncorrectNoteDto) {
@@ -249,7 +231,6 @@ export class IncorrectNoteController {
   }
 
   @ApiOperation({summary:"(테스트용)오답노트 삭제"})
-  @ApiErrorResponse()
   @Delete(':id')
   async remove(@Param('id') id: string) {
     try{
@@ -271,7 +252,6 @@ export class IncorrectNoteController {
   }
 
   @ApiOperation({summary:"(테스트용)오답노트 추가"})
-  @ApiErrorResponse()
   @Post()
   @UsePipes(new ValidationPipe({whitelist: true, forbidNonWhitelisted: true}))
   async create(@Body() createIncorrectNoteDto: CreateIncorrectNoteDto) {
@@ -295,7 +275,6 @@ export class IncorrectNoteController {
   }
 
   @ApiOperation({summary:"(테스트용)멘토 아이디로 오답노트 불러오기"})
-  @ApiErrorResponse()
   @Get('mento')
   async findForMento(@Query('id') mentoId: string) {
     try{
@@ -322,7 +301,6 @@ export class IncorrectNoteController {
   }
 
   @ApiOperation({summary:"(테스트용)학생 아이디로 오답노트 불러오기"})
-  @ApiErrorResponse()
   @Get('student')
   async findForStudent(@Query('id') studentId: string) {
     try{
