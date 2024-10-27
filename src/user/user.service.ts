@@ -16,6 +16,10 @@ export class UserService {
     return this.userRepository.save(newUser)
   }
   
+  async findOneById(id:number){
+    return await this.userRepository.findOneBy({id:id})
+  }
+
   async findOneByGoogleId(id:string){
     return await this.userRepository.findOneBy({googleId: id})
   }

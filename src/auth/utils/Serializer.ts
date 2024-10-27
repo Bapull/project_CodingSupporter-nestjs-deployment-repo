@@ -4,19 +4,23 @@ import { AuthService } from "../auth.service";
 import { User } from "src/user/entities/user.entity";
 
 @Injectable()
-export class SessionSerializer extends PassportSerializer{
+export class SessionSerializer extends PassportSerializer {
   constructor(
     @Inject(AuthService) private readonly authService: AuthService
-  ){
+  ) {
     super()
   }
 
   serializeUser(user: User, done: Function) {
-    done(null,user)
+    done(null, user.id)  // 사용자 ID만 저장
   }
 
-  async deserializeUser(payload: any, done: Function) {
-    const user = await this.authService.findUser(payload.googleId)
-    return user ? done(null, user) : done(null,null)
+  async deserializeUser(userId: number, done: Function) {
+    try {
+      const user = await this.authService.findUserById(userId)
+      done(null, user)
+    } catch (error) {
+      done(error, null)
+    }
   }
 }

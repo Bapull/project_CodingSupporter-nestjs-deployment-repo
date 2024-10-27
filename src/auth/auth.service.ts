@@ -23,4 +23,9 @@ export class AuthService {
     const user = await this.userService.findOneByGoogleId(id)
     return user
   }
+
+  async findUserById(id:number){
+    const user = await this.userService.findOneById(id)
+    return user
+  }
 }
