@@ -1,6 +1,7 @@
-import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
+import { Column, Entity, PrimaryGeneratedColumn, Unique } from 'typeorm';
 
 @Entity()
+@Unique(['userId', 'checkInTime'])
 export class Attendance {
   @PrimaryGeneratedColumn()
   id: number;
@@ -8,6 +9,6 @@ export class Attendance {
   @Column()
   userId: number;
 
-  @Column({ type: 'timestamp' })
-  checkInTime: Date;
+  @Column()
+  checkInTime: string;
 }

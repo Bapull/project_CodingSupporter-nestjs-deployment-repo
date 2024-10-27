@@ -73,14 +73,28 @@ export class UserController {
 
   @ApiOperation({ summary: '출석체크 추가' })
   @ApiResponseMessage('출석체크 완료', HttpStatus.CREATED, '출석체크를 완료했습니다.')
+  @ApiResponseMessage('이미 출석체크를 했습니다.', HttpStatus.BAD_REQUEST, '이미 출석체크를 했습니다.')
   @Post('attendance')
-  async makeAttendance(@Req() request){
-    const date = new Date()
-    await this.attendanceService.create({
-      userId:request.user.id,
-      checkInTime: date
-    })
+  async makeAttendance(@Req() request) {
+    const date = new Date();
+    const formatter = new Intl.DateTimeFormat('ko-KR', {
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      timeZone: 'Asia/Seoul'
+    });
+    
+    const formattedDate = formatter.format(date).replace(/\. /g, '-').replace('.', '');
+
     if(request.user) {
+      try{
+        await this.attendanceService.create({
+          userId: request.user.id,
+          checkInTime: formattedDate
+        });
+      }catch(e){
+        throw new BadRequestException('이미 출석체크를 했습니다.');
+      }
       return {
         'message':'출석체크를 완료했습니다.'
       }
