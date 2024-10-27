@@ -5,11 +5,12 @@ import { IncorrectNoteService } from 'src/incorrect-note/incorrect-note.service'
 import { ApiBody, ApiOperation, ApiQuery, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { UpdateUserNameDto } from './dto/update-user-name.dto';
 import { UpdateUserLanguageDto } from './dto/update-user-language.dto';
-import { ApiCommonResponses } from 'src/utils/swagger';
+import { ApiUnauthorizedResponses, ApiErrorResponse, ApiResponseMessage } from 'src/utils/swagger';
 
 @ApiTags('user')
 @Controller('user')
-@ApiCommonResponses()
+@ApiUnauthorizedResponses()
+@ApiErrorResponse('요청을 처리하지 못했습니다.')
 export class UserController {
   constructor(private readonly userService: UserService,
     private readonly attendanceService: AttendanceService,
@@ -71,13 +72,7 @@ export class UserController {
   }
 
   @ApiOperation({ summary: '출석체크 추가' })
-  @ApiResponse({
-    status: HttpStatus.CREATED,
-    description: '출석체크 완료',
-    example:{
-      message:'출석체크를 완료했습니다.',
-    }
-  })
+  @ApiResponseMessage('출석체크 완료', HttpStatus.CREATED, '출석체크를 완료했습니다.')
   @Post('attendance')
   async makeAttendance(@Req() request){
     const date = new Date()
@@ -131,11 +126,7 @@ export class UserController {
       }
     }
   })
-  @ApiResponse({
-    status: HttpStatus.OK,
-    description: '이름변경 완료',
-    example:{message:'이름이 변경되었습니다.'}
-  })
+  @ApiResponseMessage('이름변경 완료', HttpStatus.OK, '이름이 변경되었습니다.')
   @Patch('name')
   async changeName(@Req() request, @Body() dto:UpdateUserNameDto){
     if(request.user) {
@@ -161,20 +152,8 @@ export class UserController {
       }
     }
   })
-  @ApiResponse({
-    status: HttpStatus.OK,
-    description: '언어변경 완료',
-    example:{message:'유저의 언어를 변경했습니다.'}
-  })
-  @ApiResponse({
-    status: 400,
-    description: 'body가 올바르지 않은 경우',
-    example:{
-      message: "useLanguage는 문자열 배열을 따옴표로 감싼 형태여야 합니다.",
-      error: "Bad Request",
-      statusCode: 400
-    }
-  })
+  @ApiResponseMessage('언어변경 완료', HttpStatus.OK, '언어를 변경했습니다.')
+  @ApiResponseMessage('body가 올바르지 않은 경우', HttpStatus.BAD_REQUEST, 'useLanguage는 문자열 배열을 따옴표로 감싼 형태여야 합니다.')
   @Patch('language')
   async changeLanguage(@Req() request, @Body() dto:UpdateUserLanguageDto){
     if(request.user) {
@@ -193,11 +172,7 @@ export class UserController {
   }
 
   @ApiOperation({summary:'유저 역할 변경(튜터에서 튜티로, 튜티에서 튜터로)'})
-  @ApiResponse({
-    status: HttpStatus.OK,
-    description: '역할변경 완료',
-    example:{message:'유저의 역할을 변경했습니다.'}
-  })
+  @ApiResponseMessage('역할변경 완료', HttpStatus.OK, '역할을 변경했습니다.')
   @Patch('position')
   async changePosition(@Req() request){
     if(request.user) {
