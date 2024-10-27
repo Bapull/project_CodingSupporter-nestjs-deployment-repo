@@ -1,4 +1,4 @@
 export class CreateAttendanceDto {
   userId:number;
-  checkInTime:Date;
+  checkInTime:string;
 }
