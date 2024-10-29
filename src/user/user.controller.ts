@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Req, BadRequestException, UnauthorizedException, HttpStatus } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Req, BadRequestException, UnauthorizedException, HttpStatus, UseGuards } from '@nestjs/common';
 import { UserService } from './user.service';
 import { AttendanceService } from 'src/attendance/attendance.service';
 import { IncorrectNoteService } from 'src/incorrect-note/incorrect-note.service';
@@ -6,10 +6,12 @@ import { ApiBody, ApiOperation, ApiQuery, ApiResponse, ApiTags } from '@nestjs/s
 import { UpdateUserNameDto } from './dto/update-user-name.dto';
 import { UpdateUserLanguageDto } from './dto/update-user-language.dto';
 import { ApiUnauthorizedResponses, ApiErrorResponse, ApiResponseMessage } from 'src/utils/swagger';
+import { AuthGuard } from 'src/auth/auth.guard';
 
 @ApiTags('user')
 @Controller('user')
 @ApiUnauthorizedResponses()
+@UseGuards(AuthGuard)
 @ApiErrorResponse('요청을 처리하지 못했습니다.')
 export class UserController {
   constructor(private readonly userService: UserService,
@@ -35,13 +37,9 @@ export class UserController {
   })
   @Get('info')
   user(@Req() request){
-    if(request.user) {
-      return {
-        'message':'유저 정보를 성공적으로 불러왔습니다.',
-        'info': request.user
-      }
-    }else {
-      throw new UnauthorizedException('로그인이 필요합니다.');
+    return {
+      'message':'유저 정보를 성공적으로 불러왔습니다.',
+      'info': request.user
     }
   }
 
@@ -61,13 +59,9 @@ export class UserController {
   })
   @Get('attendance')
   async attendanceGraph(@Req() request){
-    if(request.user) {
-      return {
-        'message':'유저 출석정보를 성공적으로 불러왔습니다.',
-        'attendance': await this.attendanceService.findAll(request.user.id)
-      }
-    }else {
-      throw new UnauthorizedException('로그인이 필요합니다.');
+    return {
+      'message':'유저 출석정보를 성공적으로 불러왔습니다.',
+      'attendance': await this.attendanceService.findAll(request.user.id)
     }
   }
 
@@ -86,20 +80,16 @@ export class UserController {
     
     const formattedDate = formatter.format(date).replace(/\. /g, '-').replace('.', '');
 
-    if(request.user) {
-      try{
-        await this.attendanceService.create({
-          userId: request.user.id,
-          checkInTime: formattedDate
-        });
-      }catch(e){
-        throw new BadRequestException('이미 출석체크를 했습니다.');
-      }
-      return {
-        'message':'출석체크를 완료했습니다.'
-      }
-    }else {
-      throw new UnauthorizedException('로그인이 필요합니다.');
+    try{
+      await this.attendanceService.create({
+        userId: request.user.id,
+        checkInTime: formattedDate
+      });
+    }catch(e){
+      throw new BadRequestException('이미 출석체크를 했습니다.');
+    }
+    return {
+      'message':'출석체크를 완료했습니다.'
     }
   }
 
@@ -118,13 +108,9 @@ export class UserController {
   })
   @Get('graph')
   async graphInfo(@Req() request) {
-    if(request.user) {
-      return {
-        'message':'유저 그래프 정보를 성공적으로 불러왔습니다.',
-        'data': await this.incorrectNoteService.graphInfo(request.user.id, request.user.position)
-      }
-    }else {
-      throw new UnauthorizedException('로그인이 필요합니다.');
+    return {
+      'message':'유저 그래프 정보를 성공적으로 불러왔습니다.',
+      'data': await this.incorrectNoteService.graphInfo(request.user.id, request.user.position)
     }
   }
 
@@ -143,13 +129,9 @@ export class UserController {
   @ApiResponseMessage('이름변경 완료', HttpStatus.OK, '이름이 변경되었습니다.')
   @Patch('name')
   async changeName(@Req() request, @Body() dto:UpdateUserNameDto){
-    if(request.user) {
-      await this.userService.updateName(request.user.id, dto)
-      return {
-        'message':'유저의 이름을 변경했습니다.',
-      }
-    }else {
-      throw new UnauthorizedException('로그인이 필요합니다.');
+    await this.userService.updateName(request.user.id, dto)
+    return {
+      'message':'유저의 이름을 변경했습니다.',
     }
   }
 
@@ -170,18 +152,14 @@ export class UserController {
   @ApiResponseMessage('body가 올바르지 않은 경우', HttpStatus.BAD_REQUEST, 'useLanguage는 문자열 배열을 따옴표로 감싼 형태여야 합니다.')
   @Patch('language')
   async changeLanguage(@Req() request, @Body() dto:UpdateUserLanguageDto){
-    if(request.user) {
-      try{
-        JSON.parse(dto.useLanguage)
-        await this.userService.updateLanguage(request.user.id, dto)
-        return {
-          'message':'유저의 언어를 변경했습니다.',
-        }
-      }catch(e){
-        throw new BadRequestException('useLanguage는 문자열 배열을 따옴표로 감싼 형태여야 합니다.');
+    try{
+      JSON.parse(dto.useLanguage)
+      await this.userService.updateLanguage(request.user.id, dto)
+      return {
+        'message':'유저의 언어를 변경했습니다.',
       }
-    }else {
-      throw new UnauthorizedException('로그인이 필요합니다.');
+    }catch(e){
+      throw new BadRequestException('useLanguage는 문자열 배열을 따옴표로 감싼 형태여야 합니다.');
     }
   }
 
@@ -189,13 +167,9 @@ export class UserController {
   @ApiResponseMessage('역할변경 완료', HttpStatus.OK, '역할을 변경했습니다.')
   @Patch('position')
   async changePosition(@Req() request){
-    if(request.user) {
-      await this.userService.updatePosition(request.user.id)
+    await this.userService.updatePosition(request.user.id)
       return {
         'message':'유저의 역할을 변경했습니다.',
       }
-    }else {
-      throw new UnauthorizedException('로그인이 필요합니다.');
-    }
   }
 }
