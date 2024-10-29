@@ -1,41 +1,49 @@
 필요한 환경변수들
 
-본인의 db설정에 맞게 설정
+- 본인의 db설정에 맞게 설정
+```
 DB_HOST=
 DB_PORT=
 DB_USERNAME=
 DB_PASSWORD=
 DB_DATABASE=
-
+```
 - 로컬이라면 https://localhost:3000/auth/google/redirect
 - ec2라면 https://bapull.shop/auth/google/redirect
+```
 GOOGLE_CALLBACK_URL=
-
+```
 - 로컬이라면 development
 - ec2라면 EC2
+```
 NODE_ENV=
-
+```
 - 로컬이라면 https://localhost:5173
 - ec2라면 배포된 프론트 페이지 주소
+```
 FRONTEND_URL=
-
+```
 
 - 임의의 문자열 아무거나
+```
 SESSION_SECRET=itisajusttestsecretkey
-
+```
 - 구글 클라이언트 아이디 및 비밀번호
+```
 GOOGLE_CLIENT_ID=
 GOOGLE_SECRET=
-
+```
 - openai 키
+```
 OPENAI_API_KEY=
-
+```
 - aws 접근 키
+```
 AWS_ACCESS_KEY_ID=
 AWS_SECRET_ACCESS_KEY=
 AWS_REGION=
 AWS_S3_BUCKET_NAME=
-
+```
 
 
 mkcert로 localhost를 https로 만드는 법
