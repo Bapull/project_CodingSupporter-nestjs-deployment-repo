@@ -8,7 +8,8 @@ import { LangChainService } from 'src/lang-chain/lang-chain.service'
 import { SaveIncorrectNoteDto } from './dto/save-incorrect-note.dto';
 import { ApiUnauthorizedResponses, ApiErrorResponse, ApiResponseMessage } from 'src/utils/swagger';
 import { AuthGuard } from 'src/auth/auth.guard';
-
+import { GetS3FileDto } from './dto/get-s3-file.dto';
+import { LanguageAndErrorTypeDto } from './dto/language-and-errortype.dto';
 
 
 @ApiTags('incorrect-note')
@@ -83,16 +84,18 @@ export class IncorrectNoteController {
       }
     }
   })
+  @ApiResponseMessage('note-name 쿼리파라미터가 필요함', HttpStatus.BAD_REQUEST, 'note-name 쿼리파라미터가 필요합니다.')
   @Get('s3')
-  async getS3File(@Query('note-name') noteName:string, @Req() request){
-    try{
-      const {noteInfo, mdFile} = await this.incorrectNoteService.downloadMdFile(noteName, request.user.id, request.user.position)
+  @UsePipes(new ValidationPipe({ transform: true }))
+  async getS3File(@Query() query: GetS3FileDto, @Req() request) {
+    try {
+      const {noteInfo, mdFile} = await this.incorrectNoteService.downloadMdFile(query['note-name'], request.user.id, request.user.position)
       return {
-        message:'오답노트 상세 정보를 성공적으로 불러왔습니다.',
-        noteInfo:noteInfo,
-        mdFile:mdFile.Body.toString()
+        message: '오답노트 상세 정보를 성공적으로 불러왔습니다.',
+        noteInfo: noteInfo,
+        mdFile: mdFile.Body.toString()
       }
-    }catch(error){
+    } catch(error) {
       throw new HttpException(
         {
           STATUS_CODES: HttpStatus.BAD_REQUEST,
@@ -101,9 +104,9 @@ export class IncorrectNoteController {
         },
         HttpStatus.BAD_REQUEST,
       )
-    } 
+    }
   }
-  
+
   @ApiOperation({summary:'폴더 정보 불러오기'})
   @ApiResponse({
     status: HttpStatus.OK,
@@ -147,16 +150,12 @@ export class IncorrectNoteController {
   @ApiResponseMessage('쿼리파라미터가 필요함', HttpStatus.BAD_REQUEST, '쿼리파라미터가 필요합니다.')
   @Get()
   async findByLanguageAndErrorType(
-    @Query('language') language: string,
-    @Query('error-type') errorType: string,
+    @Query() query: LanguageAndErrorTypeDto,
     @Req() request
   ) {
-    if(!language || !errorType){
-      throw new BadRequestException('쿼리파라미터가 필요합니다.')
-    }
     return {
       message:'오답노트 파일 정보를 성공적으로 불러왔습니다.',
-      notes: await this.incorrectNoteService.findByLanguageAndErrorType(request.user.id, language, errorType, request.user.position)
+      notes: await this.incorrectNoteService.findByLanguageAndErrorType(request.user.id, query['language'], query['error-type'], request.user.position)
     }
   }
 
@@ -188,7 +187,6 @@ export class IncorrectNoteController {
 
   @ApiOperation({summary:"(테스트용)오답노트 수정"})
   @Put(':id')
-  @UsePipes(new ValidationPipe({whitelist: true, forbidNonWhitelisted: true}))
   async update(@Param('id') id: string, @Body() updateIncorrectNoteDto: UpdateIncorrectNoteDto) {
     try{
       await this.incorrectNoteService.update(id,updateIncorrectNoteDto);
@@ -231,7 +229,6 @@ export class IncorrectNoteController {
 
   @ApiOperation({summary:"(테스트용)오답노트 추가"})
   @Post()
-  @UsePipes(new ValidationPipe({whitelist: true, forbidNonWhitelisted: true}))
   async create(@Body() createIncorrectNoteDto: CreateIncorrectNoteDto) {
     try{
       await this.incorrectNoteService.create(createIncorrectNoteDto);

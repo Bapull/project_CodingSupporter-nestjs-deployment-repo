@@ -52,11 +52,6 @@ export class UserController {
       attendance: ["2024-10-05","2024-10-06","2024-10-07"]
     }
   })
-  @ApiQuery({
-    name:'id',
-    example:1,
-    description:'유저의 아이디'
-  })
   @Get('attendance')
   async attendanceGraph(@Req() request){
     return {

@@ -29,7 +29,11 @@ async function bootstrap() {
     allowedHeaders: 'Content-Type, Accept',
     credentials: true,
   })
-  app.useGlobalPipes(new ValidationPipe());
+  app.useGlobalPipes(new ValidationPipe({
+    transform: true,
+    whitelist: true,
+    forbidNonWhitelisted: true,
+  }));
   const config = new DocumentBuilder()
   .setTitle('CodingSupporter')
   .setDescription('CodingSupporterAPI')
