@@ -1,19 +1,21 @@
-import { ApiProperty } from "@nestjs/swagger"
+import { ApiProperty } from '@nestjs/swagger';
+import { IsString, Matches, IsIn } from 'class-validator';
 
 export class SaveIncorrectNoteDto {
-  @ApiProperty({
-    example: "python",
-    description: '오답노트 생성시 함께 받은 언어값'
+  @IsString()
+  @Matches(/^[A-Za-z]+$/, {
+    message: '언어는 영문 알파벳만 사용할 수 있습니다.'
   })
-  language:string
-  @ApiProperty({
-    example: '1',
-    description: '오답노트 생성시 함께 받은 에러타입값'
+  language: string;
+
+  @IsIn(['1', '2', '3', '4'], {
+    message: 'errorType은 1, 2, 3, 4 중 하나여야 합니다.'
   })
-  errorType:string
+  errorType: string;
+
   @ApiProperty({
     example: '마크다운 텍스트 파일',
     description: '오답노트 생성시 함께 받은 마크다운 텍스트 파일'
   })
-  mdFile:string
+  mdFile: string
 }

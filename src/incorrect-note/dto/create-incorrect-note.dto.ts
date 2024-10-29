@@ -1,5 +1,5 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { IsInt, IsNotEmpty, IsString } from "class-validator";
+import { IsInt, IsString } from "class-validator";
 
 export class CreateIncorrectNoteDto{
   @ApiProperty({

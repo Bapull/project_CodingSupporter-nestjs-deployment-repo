@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Param, Delete, HttpStatus, HttpException, Query, Put, UsePipes, ValidationPipe, Req, UnauthorizedException, BadRequestException } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, Delete, HttpStatus, HttpException, Query, Put, UsePipes, ValidationPipe, Req, UnauthorizedException, BadRequestException, UseGuards } from '@nestjs/common';
 import { IncorrectNoteService } from './incorrect-note.service';
 import { CreateIncorrectNoteDto } from './dto/create-incorrect-note.dto';
 import { UpdateIncorrectNoteDto } from './dto/update-incorrect-note.dto';
@@ -7,13 +7,16 @@ import { GenerateIncorrectNoteDto } from './dto/generate-incorrect-note.dto';
 import { LangChainService } from 'src/lang-chain/lang-chain.service'
 import { SaveIncorrectNoteDto } from './dto/save-incorrect-note.dto';
 import { ApiUnauthorizedResponses, ApiErrorResponse, ApiResponseMessage } from 'src/utils/swagger';
-
+import { AuthGuard } from 'src/auth/auth.guard';
+import { GetS3FileDto } from './dto/get-s3-file.dto';
+import { LanguageAndErrorTypeDto } from './dto/language-and-errortype.dto';
 
 
 @ApiTags('incorrect-note')
 @Controller('incorrect-note')
 @ApiUnauthorizedResponses()
 @ApiErrorResponse('요청을 처리하지 못했습니다.')
+@UseGuards(AuthGuard)
 export class IncorrectNoteController {
   constructor(
     private readonly incorrectNoteService: IncorrectNoteService,
@@ -25,14 +28,10 @@ export class IncorrectNoteController {
   @ApiResponseMessage('오답노트 저장완료', HttpStatus.CREATED, '오답노트를 저장했습니다.')
   @Post('save')
   async saveNote(@Body() dto: SaveIncorrectNoteDto, @Req() request){
-    if(request.user){
-      await this.incorrectNoteService.saveNote(dto, request.user.id)
+    await this.incorrectNoteService.saveNote(dto, request.user.id)
       return {
         message: '오답노트를 저장했습니다.'
       }
-    }else{
-      throw new UnauthorizedException('로그인이 필요합니다.');
-    }
   }
 
   @ApiOperation({summary:'오답노트 생성하기'})
@@ -53,8 +52,7 @@ export class IncorrectNoteController {
   @ApiBody({ type: GenerateIncorrectNoteDto })
   @Post('generate')
   async postTest(@Body() dto: GenerateIncorrectNoteDto, @Req() request) {
-    if(request.user){
-      const {json, mdFile} =  await this.langChainService.callModel(dto.code, dto.question)
+    const {json, mdFile} =  await this.langChainService.callModel(dto.code, dto.question)
       return {
         message: '오답노트를 성공적으로 생성했습니다.',
         data: {
@@ -63,10 +61,6 @@ export class IncorrectNoteController {
           mdFile:mdFile
         }
       }
-    }else{
-      throw new UnauthorizedException('로그인이 필요합니다.');
-    }
-    
   }
 
   @ApiOperation({summary:"오답노트 상세 정보 불러오기"})
@@ -90,32 +84,29 @@ export class IncorrectNoteController {
       }
     }
   })
+  @ApiResponseMessage('note-name 쿼리파라미터가 필요함', HttpStatus.BAD_REQUEST, 'note-name 쿼리파라미터가 필요합니다.')
   @Get('s3')
-  async getS3File(@Query('note-name') noteName:string, @Req() request){
-    if(request.user){
-      try{
-        const {noteInfo, mdFile} = await this.incorrectNoteService.downloadMdFile(noteName, request.user.id, request.user.position)
-        return {
-          message:'오답노트 상세 정보를 성공적으로 불러왔습니다.',
-          noteInfo:noteInfo,
-          mdFile:mdFile.Body.toString()
-        }
-      }catch(error){
-        throw new HttpException(
-          {
-            STATUS_CODES: HttpStatus.BAD_REQUEST,
-            message: '오답노트 정보를 불러오지 못 했습니다.',
-            error: error.message,
-          },
-          HttpStatus.BAD_REQUEST,
-        )
+  @UsePipes(new ValidationPipe({ transform: true }))
+  async getS3File(@Query() query: GetS3FileDto, @Req() request) {
+    try {
+      const {noteInfo, mdFile} = await this.incorrectNoteService.downloadMdFile(query['note-name'], request.user.id, request.user.position)
+      return {
+        message: '오답노트 상세 정보를 성공적으로 불러왔습니다.',
+        noteInfo: noteInfo,
+        mdFile: mdFile.Body.toString()
       }
-    }else{
-      throw new UnauthorizedException('로그인이 필요합니다.');
+    } catch(error) {
+      throw new HttpException(
+        {
+          STATUS_CODES: HttpStatus.BAD_REQUEST,
+          message: '오답노트 정보를 불러오지 못 했습니다.',
+          error: error.message,
+        },
+        HttpStatus.BAD_REQUEST,
+      )
     }
-       
   }
-  
+
   @ApiOperation({summary:'폴더 정보 불러오기'})
   @ApiResponse({
     status: HttpStatus.OK,
@@ -133,14 +124,9 @@ export class IncorrectNoteController {
   })
   @Get('folder')
   async folderCount(@Req() request) {
-    if(request.user){
-      return {
-        message:'폴더 정보를 성공적으로 불러왔습니다.',
-        folder: await this.incorrectNoteService.folder(request.user.id, request.user.position)
-      }
-    }
-    else{
-      throw new UnauthorizedException('로그인이 필요합니다.');
+    return {
+      message:'폴더 정보를 성공적으로 불러왔습니다.',
+      folder: await this.incorrectNoteService.folder(request.user.id, request.user.position)
     }
   }
 
@@ -164,21 +150,12 @@ export class IncorrectNoteController {
   @ApiResponseMessage('쿼리파라미터가 필요함', HttpStatus.BAD_REQUEST, '쿼리파라미터가 필요합니다.')
   @Get()
   async findByLanguageAndErrorType(
-    @Query('language') language: string,
-    @Query('error-type') errorType: string,
+    @Query() query: LanguageAndErrorTypeDto,
     @Req() request
   ) {
-    if(!language || !errorType){
-      throw new BadRequestException('쿼리파라미터가 필요합니다.')
-    }
-    if(request.user){
-      return {
-        message:'오답노트 파일 정보를 성공적으로 불러왔습니다.',
-        notes: await this.incorrectNoteService.findByLanguageAndErrorType(request.user.id, language, errorType, request.user.position)
-      }
-    }
-    else{
-      throw new UnauthorizedException('로그인이 필요합니다.');
+    return {
+      message:'오답노트 파일 정보를 성공적으로 불러왔습니다.',
+      notes: await this.incorrectNoteService.findByLanguageAndErrorType(request.user.id, query['language'], query['error-type'], request.user.position)
     }
   }
 
@@ -210,7 +187,6 @@ export class IncorrectNoteController {
 
   @ApiOperation({summary:"(테스트용)오답노트 수정"})
   @Put(':id')
-  @UsePipes(new ValidationPipe({whitelist: true, forbidNonWhitelisted: true}))
   async update(@Param('id') id: string, @Body() updateIncorrectNoteDto: UpdateIncorrectNoteDto) {
     try{
       await this.incorrectNoteService.update(id,updateIncorrectNoteDto);
@@ -253,7 +229,6 @@ export class IncorrectNoteController {
 
   @ApiOperation({summary:"(테스트용)오답노트 추가"})
   @Post()
-  @UsePipes(new ValidationPipe({whitelist: true, forbidNonWhitelisted: true}))
   async create(@Body() createIncorrectNoteDto: CreateIncorrectNoteDto) {
     try{
       await this.incorrectNoteService.create(createIncorrectNoteDto);
