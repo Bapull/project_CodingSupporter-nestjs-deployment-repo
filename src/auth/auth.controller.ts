@@ -23,9 +23,9 @@ export class AuthController {
 
   @ApiOperation({ summary: '로그아웃' })
   @Get('logout')
-  logout(@Req() res,@Session() session) {
+  logout(@Res() res,@Session() session) {
     session.destroy();
     res.clearCookie('connect.sid', {httpOnly: true})
-    return {message:'logout'}
+    return res.json({message:'logout'})
   }
 }

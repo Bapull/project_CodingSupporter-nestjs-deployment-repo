@@ -7,7 +7,6 @@ export class AuthService {
   constructor(private readonly userService: UserService){}
 
   async validateUser(details: UserDetails){
-    console.log(details);
     const user = await this.userService.findOneByGoogleId(details.googleId)
     if(user) return user;
     return await this.userService.createNewUser({
