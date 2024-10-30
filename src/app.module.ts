@@ -14,6 +14,8 @@ import { Attendance } from './attendance/entities/attendance.entity';
 import { LangChainModule } from './lang-chain/lang-chain.module';
 import { S3ServiceService } from './s3-service/s3-service.service';
 import { S3ServiceModule } from './s3-service/s3-service.module';
+import { ChatGateway } from './chat/chat.gateway';
+import { ChatModule } from './chat/chat.module';
 
 @Module({
   imports: [
@@ -41,8 +43,9 @@ import { S3ServiceModule } from './s3-service/s3-service.module';
     AttendanceModule,
     LangChainModule,
     S3ServiceModule,
+    ChatModule,
   ],
   controllers: [AppController],
-  providers: [AppService, S3ServiceService],
+  providers: [AppService, S3ServiceService, ChatGateway],
 })
 export class AppModule {}

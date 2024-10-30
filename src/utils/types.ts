@@ -3,3 +3,8 @@ export type UserDetails = {
   googleId: string;
   profilePicture: string;
 }
+export type Message = {
+  message: string;
+  room: string;
+  sender: string;
+}
