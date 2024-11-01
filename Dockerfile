@@ -4,16 +4,16 @@ FROM node:18-alpine
 # Create app directory
 WORKDIR /usr/src/app
 
-# Copy package files
+# First install dependencies
 COPY package*.json ./
 
-# Install dependencies with clean install and only production deps
-RUN npm ci --only=production
+# Install all dependencies for build
+RUN npm install
 
 # Copy application source
 COPY . .
 
-# Build application
+# Creates a "dist" folder with the production build
 RUN npm run build
 
 # Expose port
