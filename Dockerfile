@@ -1,19 +1,22 @@
-# Build and production in single stage
+# Base image
 FROM node:18-alpine
 
 # Create app directory
 WORKDIR /usr/src/app
 
-# First install dependencies
+# Copy package files
 COPY package*.json ./
 
-# Install all dependencies for build
+# Install dependencies
 RUN npm install
 
-# Copy application source
+# Copy source code
 COPY . .
 
-# Creates a "dist" folder with the production build
+# Generate Prisma client
+RUN npx prisma generate
+
+# Build the application
 RUN npm run build
 
 # Expose port
