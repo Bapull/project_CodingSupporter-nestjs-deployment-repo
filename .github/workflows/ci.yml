@@ -3,7 +3,7 @@ name: Docker Image CI
 on:
   pull_request:
     types: [closed]
-    branches: [main]  
+    branches: [main]
   workflow_dispatch:
 
 jobs:
