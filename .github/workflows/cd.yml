@@ -32,8 +32,8 @@ jobs:
           fi;
           docker run -d -p 3000:3000 \
             --env-file /home/ubuntu/.env \
-            -e SSL_KEY='${{ secrets.KEY_PEM }}' \    
-            -e SSL_CERT='${{ secrets.CERT_PEM }}' \  
+            -e SSL_KEY='${{ secrets.KEY_PEM }}' \
+            -e SSL_CERT='${{ secrets.CERT_PEM }}' \
             -e GOOGLE_CLIENT_ID='${{ secrets.GOOGLE_CLIENT_ID }}' \
             -e GOOGLE_SECRET='${{ secrets.GOOGLE_SECRET }}' \
             -e NODE_ENV='EC2' \ 
