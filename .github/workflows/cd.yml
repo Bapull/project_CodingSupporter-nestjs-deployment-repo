@@ -36,7 +36,7 @@ jobs:
             -e SSL_CERT='${{ secrets.CERT_PEM }}' \
             -e GOOGLE_CLIENT_ID='${{ secrets.GOOGLE_CLIENT_ID }}' \
             -e GOOGLE_SECRET='${{ secrets.GOOGLE_SECRET }}' \
-            -e NODE_ENV='EC2' \ 
+            -e NODE_ENV='EC2' \
             --restart always \
             --name nestjs-bapull \
-            hwangjungseok/nestjs-bapull:latest"
+            hwangjungseok/nestjs-bapull:latest
