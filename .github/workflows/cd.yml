@@ -39,4 +39,4 @@ jobs:
             -e NODE_ENV='EC2' \
             --restart always \
             --name nestjs-bapull \
-            hwangjungseok/nestjs-bapull:latest
+            hwangjungseok/nestjs-bapull:latest"
