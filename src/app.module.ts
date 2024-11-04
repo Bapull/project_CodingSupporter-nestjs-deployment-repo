@@ -46,6 +46,6 @@ import { ChatModule } from './chat/chat.module';
     ChatModule,
   ],
   controllers: [AppController],
-  providers: [AppService, S3ServiceService, ChatGateway],
+  providers: [AppService, S3ServiceService],
 })
 export class AppModule {}

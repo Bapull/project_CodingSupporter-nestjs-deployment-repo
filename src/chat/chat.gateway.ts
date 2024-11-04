@@ -17,8 +17,13 @@ export class ChatGateway {
     @MessageBody() message: string
   ): void {
     client.join(message);  
+    console.log(client.request)
     client.emit('join_room', message);
-    this.server.to(message).emit(client.id, '유저가 접속했습니다.');
+    this.server.to(message).emit('message',{
+      message:`${client.id}유저가 접속했습니다.`,
+      sender:'',
+      room:message
+    });
   }
 
   @SubscribeMessage('leave_room')
@@ -28,7 +33,11 @@ export class ChatGateway {
   ): void {
     client.leave(message);
     client.emit('leave_room', message);
-    this.server.to(message).emit(client.id, '유저가 나갔습니다.');
+    this.server.to(message).emit('message', {
+      message:`${client.id}유저가 나갔습니다.`,
+      sender:'',
+      room:message
+    });
   }
 
   @SubscribeMessage('message') 
