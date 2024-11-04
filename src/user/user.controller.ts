@@ -109,6 +109,28 @@ export class UserController {
     }
   }
 
+  @ApiOperation({summary:'에러 타입 개수 불러오기'})
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description:'에러정보 호출 완료',
+    example:{
+      message:'에러 정보를 성공적으로 불러왔습니다.',
+      errorInfo:{
+        "1":8,
+        "2":7,
+        "3":7,
+        "4":4
+      }
+    }
+  })
+  @Get('error-info')
+  async errorInfo(@Req() request){
+    return {
+      message:'에러 정보를 성공적으로 불러왔습니다.',
+      errorInfo: await this.incorrectNoteService.errorInfo(request.user.id, request.user.position)
+    }
+  }
+
   @ApiOperation({summary:'유저 이름 수정'})
   @ApiBody({
     schema:{

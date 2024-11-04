@@ -69,6 +69,24 @@ export class IncorrectNoteService {
     return result
   }
   
+  async errorInfo(userId:number, userPosition:number){
+    const column = userPosition == 1 ? 'mentoId': 'studentId'
+    const count = await this.incorrectRepository
+    .createQueryBuilder('note')
+    .select('note.errorType')
+    .addSelect('COUNT(note.id)','count')
+    .where({[column]:userId})
+    .groupBy('note.errorType')
+    .getRawMany()
+    
+    const result = {}
+    for (let index = 0; index < count.length; index++) {
+      const element = count[index];
+      result[`${element['note_errorType']}`] = parseInt(element['count']);
+    }
+    return result
+  }
+
   async findByLanguageAndErrorType(id: number, language: string, errorType: string, userPosition: number) {
     const column = userPosition == 1 ? 'mentoId' : 'studentId';
     return await this.incorrectRepository.createQueryBuilder('note')
