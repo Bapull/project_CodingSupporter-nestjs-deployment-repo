@@ -25,5 +25,6 @@ export class SaveIncorrectNoteDto {
     example: '마크다운 텍스트 파일',
     description: '오답노트 생성시 함께 받은 마크다운 텍스트 파일'
   })
+  @IsString()
   mdFile: string
 }
