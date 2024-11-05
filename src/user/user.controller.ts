@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Req, BadRequestException, UnauthorizedException, HttpStatus, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Req, BadRequestException, UnauthorizedException, HttpStatus, UseGuards, Query } from '@nestjs/common';
 import { UserService } from './user.service';
 import { AttendanceService } from 'src/attendance/attendance.service';
 import { IncorrectNoteService } from 'src/incorrect-note/incorrect-note.service';
@@ -18,6 +18,16 @@ export class UserController {
     private readonly attendanceService: AttendanceService,
     private readonly incorrectNoteService: IncorrectNoteService
   ) {}
+
+  @ApiOperation({summary:'멘토 5명 정보 호출'})
+  @Get('mento')
+  async getFiveMento(@Req() request, @Query('language') language){
+    return {
+      'message':'멘토 정보를 성공적으로 불러왔습니다.',
+      'info': await this.userService.findFiveMento(language)
+    }
+  }
+
 
   @ApiOperation({summary:'유저 정보 호출'})
   @ApiResponse({

@@ -11,6 +11,15 @@ export class UserService {
   constructor(@InjectRepository(User) private readonly userRepository:
   Repository<User>){}
   
+  async findFiveMento(language: string){
+    const mentos = await this.userRepository.createQueryBuilder('user')
+    .where('user.useLanguage LIKE :language',{language: `%"${language}"%`})
+    .andWhere('user.position = 1')
+    .getMany()
+    return mentos
+  }
+
+
   async createNewUser(createUserDto: CreateUserDto) {
     const newUser = this.userRepository.create(createUserDto)
     return this.userRepository.save(newUser)
