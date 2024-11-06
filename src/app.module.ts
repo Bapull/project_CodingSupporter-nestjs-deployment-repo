@@ -14,6 +14,10 @@ import { Attendance } from './attendance/entities/attendance.entity';
 import { LangChainModule } from './lang-chain/lang-chain.module';
 import { S3ServiceService } from './s3-service/s3-service.service';
 import { S3ServiceModule } from './s3-service/s3-service.module';
+import { ChatGateway } from './chat/chat.gateway';
+import { ChatModule } from './chat/chat.module';
+import { NotificationModule } from './notification/notification.module';
+import { Notification } from './notification/entities/notification.entity';
 
 @Module({
   imports: [
@@ -29,7 +33,7 @@ import { S3ServiceModule } from './s3-service/s3-service.module';
         username: configService.get('DB_USERNAME'),
         password: configService.get('DB_PASSWORD'),
         database: configService.get('DB_DATABASE'),
-        entities: [IncorrectNote, User, Attendance],
+        entities: [IncorrectNote, User, Attendance, Notification],
         synchronize: true,
       }),
       inject: [ConfigService],
@@ -41,6 +45,8 @@ import { S3ServiceModule } from './s3-service/s3-service.module';
     AttendanceModule,
     LangChainModule,
     S3ServiceModule,
+    ChatModule,
+    NotificationModule,
   ],
   controllers: [AppController],
   providers: [AppService, S3ServiceService],

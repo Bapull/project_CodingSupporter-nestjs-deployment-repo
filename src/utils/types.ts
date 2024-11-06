@@ -3,9 +3,8 @@ export type UserDetails = {
   googleId: string;
   profilePicture: string;
 }
-export enum ErrorType{
-  logical="1",
-  syntax="2",
-  runtime="3",
-  etc="4"
+export type Message = {
+  message: string;
+  room: string;
+  sender: string;
 }
