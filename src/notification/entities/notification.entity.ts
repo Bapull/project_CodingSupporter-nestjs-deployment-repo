@@ -7,19 +7,11 @@ export class Notification {
     id:number;
 
     @Column()
-    userId:number;
+    sender:string;
 
     @Column()
-    writerId:number;
-
-    @Column()
-    not_type:string;
+    receiver:string;
 
     @Column()
     content:string;
-
-    @Column()
-    isChecked:number;
-
-
 }
