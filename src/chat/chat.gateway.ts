@@ -14,14 +14,14 @@ export class ChatGateway {
   @SubscribeMessage('join_room')
   handleJoinRoom(
     @ConnectedSocket() client: Socket,
-    @MessageBody() message: Message
+    @MessageBody() message: string
   ): void {
-    client.join(message.room);  
+    client.join(message);  
     console.log(client.request)
     client.emit('join_room', message);
-    this.server.to(message.room).emit('message',{
-      message:`${message.sender}유저가 접속했습니다.`,
-      sender:'server',
+    this.server.to(message).emit('message',{
+      message:`${client.id}유저가 접속했습니다.`,
+      sender:'',
       room:message
     });
   }
@@ -29,13 +29,13 @@ export class ChatGateway {
   @SubscribeMessage('leave_room')
   handleLeaveRoom(
     @ConnectedSocket() client: Socket,
-    @MessageBody() message: Message
+    @MessageBody() message: string
   ): void {
-    client.leave(message.room);
-    client.emit('leave_room', message.room);
-    this.server.to(message.room).emit('message', {
-      message:`${message.sender}유저가 나갔습니다.`,
-      sender:'server',
+    client.leave(message);
+    client.emit('leave_room', message);
+    this.server.to(message).emit('message', {
+      message:`${client.id}유저가 나갔습니다.`,
+      sender:'',
       room:message
     });
   }
