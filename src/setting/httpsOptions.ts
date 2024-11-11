@@ -6,6 +6,6 @@ export const httpsOptions = process.env.NODE_ENV === 'EC2'
       cert: process.env.SSL_CERT
     }
   : {
-      key: fs.readFileSync('./key.pem'),
-      cert: fs.readFileSync('./cert.pem')
+      key: fs.readFileSync('key.pem'),
+      cert: fs.readFileSync('cert.pem')
     };

@@ -4,7 +4,7 @@ import { ValidationPipe } from '@nestjs/common';
 import * as session from 'express-session';
 import * as passport from 'passport'
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
-import { httpsOptions } from './httpsOptions';
+import { httpsOptions } from './setting/httpsOptions';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule,{

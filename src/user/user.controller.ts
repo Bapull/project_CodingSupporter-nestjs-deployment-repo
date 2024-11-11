@@ -20,6 +20,28 @@ export class UserController {
   ) {}
 
   @ApiOperation({summary:'멘토 5명 정보 호출'})
+  @ApiQuery({
+    name:'language',
+    description:'요청할 멘토의 언어',
+    example:'Java'
+  })
+  @ApiResponse({
+    status:HttpStatus.OK,
+    description:'멘토의 정보 배열',
+    example:{
+      'message':'멘토 정보를 성공적으로 불러왔습니다.',
+      'info': [
+        {
+          id:'1',
+          name:'문성윤',
+          useLanguage:'[\"Java\",\"Python\"]',
+          position:1,
+          profilePicture:'http://imgurl.com',
+          googleId:'1578648432159'
+        }
+      ]
+    }
+  })
   @Get('mento')
   async getFiveMento(@Req() request, @Query('language') language){
     return {

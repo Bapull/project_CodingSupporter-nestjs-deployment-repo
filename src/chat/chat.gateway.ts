@@ -2,6 +2,8 @@ import { SubscribeMessage, WebSocketGateway, WebSocketServer, ConnectedSocket, M
 import { Message } from '../utils/types';
 import { Server,Socket } from 'socket.io';
 import { MessageService } from 'src/message/message.service';
+import { UseGuards } from '@nestjs/common';
+import { ChatGuard } from './chat.guard';
 
 @WebSocketGateway({
   cors: {
@@ -15,15 +17,15 @@ export class ChatGateway {
   @WebSocketServer()
   server: Server;
 
+  @UseGuards(ChatGuard)
   @SubscribeMessage('join_room')
   async handleJoinRoom(
     @ConnectedSocket() client: Socket,
     @MessageBody() message: Message
   ): Promise<void> {
     client.join(message.room);  
-    console.log(client.request)
     client.emit('join_room', message);
-
+    console.log(client.handshake.headers.cookie)
     await this.messageService.create({
       message: `${message.sender}가 접속했습니다.`,
       room: message.room,

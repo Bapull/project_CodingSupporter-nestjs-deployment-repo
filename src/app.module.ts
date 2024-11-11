@@ -16,8 +16,8 @@ import { S3ServiceService } from './s3-service/s3-service.service';
 import { S3ServiceModule } from './s3-service/s3-service.module';
 import { ChatGateway } from './chat/chat.gateway';
 import { ChatModule } from './chat/chat.module';
-import { NotificationModule } from './notification/notification.module';
-import { Notification } from './notification/entities/notification.entity';
+import { ChatRoomModule } from './chat-room/chat-room.module';
+import { ChatRoom } from './chat-room/entities/chat-room.entity';
 import { MongooseModule } from '@nestjs/mongoose';
 import { MessageModule } from './message/message.module';
 
@@ -33,7 +33,7 @@ import { MessageModule } from './message/message.module';
       username: process.env.DB_USERNAME,
       password: process.env.DB_PASSWORD,
       database: process.env.DB_DATABASE,
-      entities: [IncorrectNote, User, Attendance, Notification],
+      entities: [IncorrectNote, User, Attendance, ChatRoom],
       synchronize: true,
     }),
     MongooseModule.forRoot(process.env.MONGODB),
@@ -45,7 +45,7 @@ import { MessageModule } from './message/message.module';
     LangChainModule,
     S3ServiceModule,
     ChatModule,
-    NotificationModule,
+    ChatRoomModule,
     MessageModule,
   ],
   controllers: [AppController],
