@@ -26,17 +26,25 @@ import { MessageModule } from './message/message.module';
     ConfigModule.forRoot({
       isGlobal: true
     }),
-    TypeOrmModule.forRoot({
-      type: 'mysql',
-      host: process.env.DB_HOST,
-      port: +process.env.DB_PORT,
-      username: process.env.DB_USERNAME,
-      password: process.env.DB_PASSWORD,
-      database: process.env.DB_DATABASE,
-      entities: [IncorrectNote, User, Attendance, ChatRoom],
-      synchronize: true,
+    TypeOrmModule.forRootAsync({
+      inject:[ConfigService],
+      useFactory:(config: ConfigService)=> ({
+        type: 'mysql',
+        host: config.get<string>('DB_HOST'),
+        port: config.get<number>('DB_PORT'),
+        username: config.get<string>('DB_USERNAME'),
+        password: config.get<string>('DB_PASSWORD'),
+        database: config.get<string>('DB_DATABASE'),
+        entities: [IncorrectNote, User, Attendance, ChatRoom],
+        synchronize: true,
+      }),
     }),
-    MongooseModule.forRoot(process.env.MONGODB),
+    MongooseModule.forRootAsync({
+      inject:[ConfigService],
+      useFactory:(config: ConfigService)=>({
+        uri: config.get<string>('MONGODB')
+      })
+    }),
     IncorrectNoteModule,
     AuthModule,
     UserModule,
