@@ -1,6 +1,7 @@
 import { SubscribeMessage, WebSocketGateway, WebSocketServer, ConnectedSocket, MessageBody } from '@nestjs/websockets';
 import { Message } from '../utils/types';
 import { Server,Socket } from 'socket.io';
+import { MessageService } from 'src/message/message.service';
 
 @WebSocketGateway({
   cors: {
@@ -8,44 +9,60 @@ import { Server,Socket } from 'socket.io';
   }
 })
 export class ChatGateway {
+  constructor(
+    private readonly messageService:MessageService
+  ){}
   @WebSocketServer()
   server: Server;
 
   @SubscribeMessage('join_room')
-  handleJoinRoom(
+  async handleJoinRoom(
     @ConnectedSocket() client: Socket,
     @MessageBody() message: Message
-  ): void {
+  ): Promise<void> {
     client.join(message.room);  
     console.log(client.request)
     client.emit('join_room', message);
+
+    await this.messageService.create({
+      message: `${message.sender}가 접속했습니다.`,
+      room: message.room,
+      sender: 'server',
+    })
+
     this.server.to(message.room).emit('message',{
-      message:`${message.sender}유저가 접속했습니다.`,
+      message:`${message.sender}가 접속했습니다.`,
       sender:'server',
       room:message
     });
   }
 
   @SubscribeMessage('leave_room')
-  handleLeaveRoom(
+  async handleLeaveRoom(
     @ConnectedSocket() client: Socket,
     @MessageBody() message: Message
-  ): void {
+  ): Promise<void> {
     client.leave(message.room);
     client.emit('leave_room', message.room);
+    await this.messageService.create({
+      message: `${message.sender}가 나갔습니다.`,
+      room: message.room,
+      sender: 'server',
+    })
     this.server.to(message.room).emit('message', {
-      message:`${message.sender}유저가 나갔습니다.`,
+      message:`${message.sender}가 나갔습니다.`,
       sender:'server',
       room:message
     });
   }
 
   @SubscribeMessage('message') 
-  handleSendMessage(
+  async handleSendMessage(
     @ConnectedSocket() client: Socket,
     @MessageBody() message: Message
-  ): void {
+  ): Promise<void> {
     if(client.rooms.has(message.room)) {
+      await this.messageService.create(message)
       this.server.to(message.room).emit('message', message);
     }
   }
