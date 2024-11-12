@@ -5,7 +5,6 @@ import { ApiExcludeEndpoint, ApiOperation, ApiParam, ApiResponse, ApiTags, ApiUn
 import { AuthGuard } from 'src/auth/auth.guard';
 import { ApiErrorResponse, ApiResponseMessage } from 'src/utils/swagger';
 import { MessageGuard } from './message.guard';
-import { JwtService } from '@nestjs/jwt';
 
 @ApiTags('message')
 @Controller('message')
@@ -13,9 +12,7 @@ import { JwtService } from '@nestjs/jwt';
 @UseGuards(AuthGuard)
 @ApiErrorResponse('요청을 처리하지 못했습니다.')
 export class MessageController {
-  constructor(private readonly messageService: MessageService,
-    private readonly jwtService:JwtService
-  ) {}
+  constructor(private readonly messageService: MessageService) {}
 
   @ApiExcludeEndpoint()
   @Post()
@@ -49,7 +46,6 @@ export class MessageController {
   async findAll(@Param('room') room:string, @Req() request) {
     return {
       message:'채팅내역을 불러왔습니다.',
-      accessToken: await this.jwtService.signAsync({sub:request.user.id}),
       data: await this.messageService.findAll(+room)
     }
   }
