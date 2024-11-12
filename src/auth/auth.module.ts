@@ -8,6 +8,7 @@ import { UserModule } from 'src/user/user.module';
 @Module({
   imports: [UserModule],
   controllers: [AuthController],
-  providers: [GoogleStrategy, AuthService, SessionSerializer]
+  providers: [GoogleStrategy, AuthService, SessionSerializer],
+  exports:[AuthService]
 })
 export class AuthModule {}

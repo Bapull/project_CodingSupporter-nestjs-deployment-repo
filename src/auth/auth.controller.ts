@@ -1,11 +1,14 @@
-import { Controller, Get, Req, Res, Session, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Headers, Post, Query, Req, Res, Session, UseGuards } from '@nestjs/common';
 import { GoogleAuthGuard } from './utils/Guards';
-import { Request } from 'express';
+import { Request, Response } from 'express';
 import { ApiExcludeEndpoint, ApiOperation, ApiTags } from '@nestjs/swagger';
+import { AuthService } from './auth.service';
+import { String } from 'aws-sdk/clients/apigateway';
 
 @ApiTags('auth')
 @Controller('auth')
 export class AuthController {
+  constructor(private readonly authService:AuthService){}
 
   @ApiOperation({ summary: '구글 로그인 페이지로 이동' })
   @Get('google/login')
@@ -23,9 +26,10 @@ export class AuthController {
 
   @ApiOperation({ summary: '로그아웃' })
   @Get('logout')
-  logout(@Res() res,@Session() session) {
-    session.destroy();
-    res.clearCookie('connect.sid', {httpOnly: true})
+  async logout(@Res() res:Response, @Req() request) {
+    const sessionId:String = request.cookies['connect.sid']
+    await this.authService.deleteSession(sessionId.split('.')[0].replace('s:',''))
+    res.clearCookie('connect.sid')
     return res.json({message:'logout'})
   }
 }

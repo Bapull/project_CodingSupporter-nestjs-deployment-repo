@@ -8,3 +8,8 @@ export type Message = {
   room: string;
   sender: string;
 }
+export type Room = {
+  id:number;
+  receiver:string;
+  sender:string
+}

@@ -1,4 +1,4 @@
-import { ChatGuard } from './socket.guard';
+import { ChatGuard } from './chat.guard';
 
 describe('ChatGuard', () => {
   it('should be defined', () => {
