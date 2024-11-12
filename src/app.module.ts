@@ -16,8 +16,10 @@ import { S3ServiceService } from './s3-service/s3-service.service';
 import { S3ServiceModule } from './s3-service/s3-service.module';
 import { ChatGateway } from './chat/chat.gateway';
 import { ChatModule } from './chat/chat.module';
-import { NotificationModule } from './notification/notification.module';
-import { Notification } from './notification/entities/notification.entity';
+import { ChatRoomModule } from './chat-room/chat-room.module';
+import { ChatRoom } from './chat-room/entities/chat-room.entity';
+import { MongooseModule } from '@nestjs/mongoose';
+import { MessageModule } from './message/message.module';
 
 @Module({
   imports: [
@@ -25,18 +27,23 @@ import { Notification } from './notification/entities/notification.entity';
       isGlobal: true
     }),
     TypeOrmModule.forRootAsync({
-      imports: [ConfigModule],
-      useFactory: (configService: ConfigService) => ({
+      inject:[ConfigService],
+      useFactory:(config: ConfigService)=> ({
         type: 'mysql',
-        host: configService.get('DB_HOST'),
-        port: +configService.get('DB_PORT'),
-        username: configService.get('DB_USERNAME'),
-        password: configService.get('DB_PASSWORD'),
-        database: configService.get('DB_DATABASE'),
-        entities: [IncorrectNote, User, Attendance, Notification],
+        host: config.get<string>('DB_HOST'),
+        port: config.get<number>('DB_PORT'),
+        username: config.get<string>('DB_USERNAME'),
+        password: config.get<string>('DB_PASSWORD'),
+        database: config.get<string>('DB_DATABASE'),
+        entities: [IncorrectNote, User, Attendance, ChatRoom],
         synchronize: true,
       }),
-      inject: [ConfigService],
+    }),
+    MongooseModule.forRootAsync({
+      inject:[ConfigService],
+      useFactory:(config: ConfigService)=>({
+        uri: config.get<string>('MONGODB')
+      })
     }),
     IncorrectNoteModule,
     AuthModule,
@@ -46,7 +53,8 @@ import { Notification } from './notification/entities/notification.entity';
     LangChainModule,
     S3ServiceModule,
     ChatModule,
-    NotificationModule,
+    ChatRoomModule,
+    MessageModule,
   ],
   controllers: [AppController],
   providers: [AppService, S3ServiceService],

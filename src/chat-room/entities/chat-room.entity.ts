@@ -1,7 +1,7 @@
 import { Column, Entity, PrimaryGeneratedColumn } from "typeorm";
 
 @Entity()
-export class Notification {
+export class ChatRoom {
     
     @PrimaryGeneratedColumn()
     id:number;
@@ -11,7 +11,4 @@ export class Notification {
 
     @Column()
     receiver:string;
-
-    @Column()
-    content:string;
 }
