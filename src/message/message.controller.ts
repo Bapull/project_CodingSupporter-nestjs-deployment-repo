@@ -1,11 +1,11 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Query, UseGuards, HttpStatus } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Query, UseGuards, HttpStatus, Req } from '@nestjs/common';
 import { MessageService } from './message.service';
 import { CreateMessageDto } from './dto/create-message.dto';
-import { UpdateMessageDto } from './dto/update-message.dto';
 import { ApiExcludeEndpoint, ApiOperation, ApiParam, ApiResponse, ApiTags, ApiUnauthorizedResponse } from '@nestjs/swagger';
 import { AuthGuard } from 'src/auth/auth.guard';
 import { ApiErrorResponse, ApiResponseMessage } from 'src/utils/swagger';
 import { MessageGuard } from './message.guard';
+import { JwtService } from '@nestjs/jwt';
 
 @ApiTags('message')
 @Controller('message')
@@ -13,7 +13,9 @@ import { MessageGuard } from './message.guard';
 @UseGuards(AuthGuard)
 @ApiErrorResponse('요청을 처리하지 못했습니다.')
 export class MessageController {
-  constructor(private readonly messageService: MessageService) {}
+  constructor(private readonly messageService: MessageService,
+    private readonly jwtService:JwtService
+  ) {}
 
   @ApiExcludeEndpoint()
   @Post()
@@ -44,9 +46,10 @@ export class MessageController {
   @ApiResponseMessage('해당 채팅방의 참여인원이 아닌 경우',HttpStatus.UNAUTHORIZED,'해당 방의 메시지를 불러올 권한이 없습니다.')
   @UseGuards(MessageGuard)
   @Get(':room')
-  async findAll(@Param('room') room:string) {
+  async findAll(@Param('room') room:string, @Req() request) {
     return {
       message:'채팅내역을 불러왔습니다.',
+      accessToken: await this.jwtService.signAsync({sub:request.user.id}),
       data: await this.messageService.findAll(+room)
     }
   }

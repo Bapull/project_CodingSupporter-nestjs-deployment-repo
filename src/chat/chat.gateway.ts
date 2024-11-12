@@ -2,8 +2,6 @@ import { SubscribeMessage, WebSocketGateway, WebSocketServer, ConnectedSocket, M
 import { Message } from '../utils/types';
 import { Server,Socket } from 'socket.io';
 import { MessageService } from 'src/message/message.service';
-import { UseGuards } from '@nestjs/common';
-import { ChatGuard } from './chat.guard';
 
 @WebSocketGateway({
   cors: {
@@ -17,7 +15,6 @@ export class ChatGateway {
   @WebSocketServer()
   server: Server;
 
-  @UseGuards(ChatGuard)
   @SubscribeMessage('join_room')
   async handleJoinRoom(
     @ConnectedSocket() client: Socket,
