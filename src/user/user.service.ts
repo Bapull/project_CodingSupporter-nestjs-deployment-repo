@@ -10,15 +10,6 @@ import { Repository } from 'typeorm';
 export class UserService {
   constructor(@InjectRepository(User) private readonly userRepository:
   Repository<User>){}
-  
-  async findFiveMento(language: string){
-    const mentos = await this.userRepository.createQueryBuilder('user')
-    .where('user.useLanguage LIKE :language',{language: `%"${language}"%`})
-    .andWhere('user.position = 1')
-    .getMany()
-    return mentos
-  }
-
 
   async createNewUser(createUserDto: CreateUserDto) {
     const newUser = this.userRepository.create(createUserDto)
@@ -60,5 +51,49 @@ export class UserService {
       Object.assign(user,{position:1})
     }
     return await this.userRepository.save(user)
+  }
+
+  async isMentoAndIsProper(ids:number[],language:string){
+    const getRandomItems = (arr, count) => {
+      const shuffled = [...arr];
+      for (let i = shuffled.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+      }
+      return shuffled.slice(0, count);
+    }
+
+    let response = []
+    if(ids.length > 0){
+      const user = await this.userRepository.createQueryBuilder('user')
+      .where('user.id IN (:...ids)',{ids})
+      .andWhere('user.useLanguage LIKE :language', {language: `%"${language}"%`})
+      .getMany()
+
+      const appendPropertyUser = user.map((item)=>{
+        return {...item, isActive:true}
+      })
+      response = getRandomItems(appendPropertyUser, 5)
+    }
+    
+    if(response.length < 5){
+      const notActiveUser = await this.userRepository.createQueryBuilder('user')
+      .where('user.useLanguage LIKE :language',{language: `%"${language}"%`})
+      .andWhere('user.position = 1')
+      .getMany()
+      
+      const setNotActiveUser = notActiveUser.filter((item)=>{
+        return !ids.includes(item.id)
+      })
+
+      const shuffledNotActiveUser = getRandomItems(setNotActiveUser, 5 - response.length)
+      const appendPropertyNotActive = shuffledNotActiveUser.map((item)=>{
+        return {...item, isActive:false}
+      })
+      response.push(...appendPropertyNotActive)
+    }
+    
+    
+    return response
   }
 }

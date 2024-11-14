@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { UserService } from 'src/user/user.service';
-import { UserDetails } from 'src/common/types';
+import { SessionData, UserDetails } from 'src/common/types';
 import { createClient } from "redis";
 
 @Injectable()
@@ -70,5 +70,28 @@ export class AuthService {
       console.error('세션 삭제 실패')
     }
     
+  }
+
+  async findAllMento(language:string){
+    try{
+      let cursor = 0
+      const sessions:number[] = [];
+
+      do{
+        const reply = await this.redisClient.scan(cursor, 'MATCH','sess:*','COUNT','100')
+        cursor = reply['cursor'];
+        const keys:string[] = reply['keys'];
+        const sessionDatas:number[] = await Promise.all(keys.map(async (key)=>{
+          const sessionData = await this.redisClient.get(key)
+          const json:SessionData = JSON.parse(sessionData)
+          return json.passport.user
+        }))
+        sessions.push(...sessionDatas)
+      }while(cursor !== 0 )
+      return await this.userService.isMentoAndIsProper(sessions,language)
+    }catch(error){
+      console.error(error)
+      return null
+    }
   }
 }
