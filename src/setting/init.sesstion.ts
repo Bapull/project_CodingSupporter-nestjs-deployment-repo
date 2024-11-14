@@ -23,11 +23,12 @@ export function setUpSession(app: INestApplication): void {
         resave:false,
         saveUninitialized:false,
         store: redisStore,
+        rolling:true,
         cookie:{
           secure:true,
           sameSite:'none',
-          maxAge: 36000000, //10시간
-        }
+          maxAge: 1000 * 60 * 30,
+        },
       }),
   );
   app.use(passport.initialize());

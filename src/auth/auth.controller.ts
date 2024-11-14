@@ -4,6 +4,8 @@ import { Request, Response } from 'express';
 import { ApiExcludeEndpoint, ApiOperation, ApiQuery, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { AuthService } from './auth.service';
 import { String } from 'aws-sdk/clients/apigateway';
+import { AuthGuard } from './auth.guard';
+import { ApiUnauthorizedResponses } from 'src/common/api-response.decorator';
 
 @ApiTags('auth')
 @Controller('auth')
@@ -57,6 +59,8 @@ export class AuthController {
       ]
     }
   })
+  @ApiUnauthorizedResponses()
+  @UseGuards(AuthGuard)
   @Get('mento')
   async getFiveMento(@Query('language') language:string){
     return {
