@@ -5,7 +5,7 @@ import { IncorrectNoteService } from 'src/incorrect-note/incorrect-note.service'
 import { ApiBody, ApiOperation, ApiQuery, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { UpdateUserNameDto } from './dto/update-user-name.dto';
 import { UpdateUserLanguageDto } from './dto/update-user-language.dto';
-import { ApiUnauthorizedResponses, ApiErrorResponse, ApiResponseMessage } from 'src/utils/swagger';
+import { ApiUnauthorizedResponses, ApiErrorResponse, ApiResponseMessage } from 'src/common/api-response.decorator';
 import { AuthGuard } from 'src/auth/auth.guard';
 
 @ApiTags('user')

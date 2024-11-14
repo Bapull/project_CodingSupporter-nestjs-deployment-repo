@@ -12,8 +12,8 @@ import { PassportModule } from '@nestjs/passport';
 import { AttendanceModule } from './attendance/attendance.module';
 import { Attendance } from './attendance/entities/attendance.entity';
 import { LangChainModule } from './lang-chain/lang-chain.module';
-import { S3ServiceService } from './s3-service/s3-service.service';
-import { S3ServiceModule } from './s3-service/s3-service.module';
+import { S3Service } from './s3/s3.service';
+import { S3Module } from './s3/s3.module';
 import { ChatGateway } from './chat/chat.gateway';
 import { ChatModule } from './chat/chat.module';
 import { ChatRoomModule } from './chat-room/chat-room.module';
@@ -51,12 +51,12 @@ import { MessageModule } from './message/message.module';
     PassportModule.register({session:true}),
     AttendanceModule,
     LangChainModule,
-    S3ServiceModule,
+    S3Module,
     ChatModule,
     ChatRoomModule,
     MessageModule,
   ],
   controllers: [AppController],
-  providers: [AppService, S3ServiceService],
+  providers: [AppService, S3Service],
 })
 export class AppModule {}

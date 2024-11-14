@@ -2,7 +2,7 @@ import { Controller, Get, Post, Body, Patch, Param, Delete, Req, Query, UseGuard
 import { ChatRoomService } from './chat-room.service';
 import { CreateChatRoomDto } from './dto/create-chat-room.dto';
 import { ApiBody, ApiOperation, ApiQuery, ApiResponse, ApiTags } from '@nestjs/swagger';
-import { ApiUnauthorizedResponses, ApiErrorResponse, ApiResponseMessage } from 'src/utils/swagger';
+import { ApiUnauthorizedResponses, ApiErrorResponse, ApiResponseMessage } from 'src/common/api-response.decorator';
 import { AuthGuard } from 'src/auth/auth.guard';
 
 

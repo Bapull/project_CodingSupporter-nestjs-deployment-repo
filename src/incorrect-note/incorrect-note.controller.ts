@@ -6,7 +6,7 @@ import { ApiBody, ApiOperation, ApiQuery, ApiResponse, ApiTags } from '@nestjs/s
 import { GenerateIncorrectNoteDto } from './dto/generate-incorrect-note.dto';
 import { LangChainService } from 'src/lang-chain/lang-chain.service'
 import { SaveIncorrectNoteDto } from './dto/save-incorrect-note.dto';
-import { ApiUnauthorizedResponses, ApiErrorResponse, ApiResponseMessage } from 'src/utils/swagger';
+import { ApiUnauthorizedResponses, ApiErrorResponse, ApiResponseMessage } from 'src/common/api-response.decorator';
 import { AuthGuard } from 'src/auth/auth.guard';
 import { GetS3FileDto } from './dto/get-s3-file.dto';
 import { LanguageAndErrorTypeDto } from './dto/language-and-errortype.dto';

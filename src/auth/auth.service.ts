@@ -1,8 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { UserService } from 'src/user/user.service';
-import { UserDetails } from 'src/utils/types';
-import {createClient} from "redis";
+import { UserDetails } from 'src/common/types';
+import { createClient } from "redis";
 
 @Injectable()
 export class AuthService {

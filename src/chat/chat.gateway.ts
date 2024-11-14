@@ -1,5 +1,5 @@
 import { SubscribeMessage, WebSocketGateway, WebSocketServer, ConnectedSocket, MessageBody, WsException } from '@nestjs/websockets';
-import { Message, Room } from '../utils/types';
+import { Message, Room } from '../common/types';
 import { Server,Socket } from 'socket.io';
 import { MessageService } from 'src/message/message.service';
 import { UseGuards } from '@nestjs/common';

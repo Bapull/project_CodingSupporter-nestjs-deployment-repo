@@ -3,7 +3,7 @@ import { MessageService } from './message.service';
 import { CreateMessageDto } from './dto/create-message.dto';
 import { ApiExcludeEndpoint, ApiOperation, ApiParam, ApiResponse, ApiTags, ApiUnauthorizedResponse } from '@nestjs/swagger';
 import { AuthGuard } from 'src/auth/auth.guard';
-import { ApiErrorResponse, ApiResponseMessage } from 'src/utils/swagger';
+import { ApiErrorResponse, ApiResponseMessage } from 'src/common/api-response.decorator';
 import { MessageGuard } from './message.guard';
 
 @ApiTags('message')
