@@ -13,3 +13,9 @@ export type Room = {
   receiver:string;
   sender:string
 }
+export type SessionData = {
+  cookie:object,
+  passport:{
+    user:number
+  }
+}

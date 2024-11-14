@@ -1,7 +1,7 @@
-import { Body, Controller, Get, Headers, Post, Query, Req, Res, Session, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Headers, HttpStatus, Post, Query, Req, Res, Session, UseGuards } from '@nestjs/common';
 import { GoogleAuthGuard } from './google/google-auth.guard';
 import { Request, Response } from 'express';
-import { ApiExcludeEndpoint, ApiOperation, ApiTags } from '@nestjs/swagger';
+import { ApiExcludeEndpoint, ApiOperation, ApiQuery, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { AuthService } from './auth.service';
 import { String } from 'aws-sdk/clients/apigateway';
 
@@ -31,5 +31,37 @@ export class AuthController {
     await this.authService.deleteSession(sessionId.split('.')[0].replace('s:',''))
     res.clearCookie('connect.sid')
     return res.json({message:'logout'})
+  }
+
+  @ApiOperation({summary:'멘토 5명 정보 호출'})
+  @ApiQuery({
+    name:'language',
+    description:'요청할 멘토의 언어',
+    example:'Java'
+  })
+  @ApiResponse({
+    status:HttpStatus.OK,
+    description:'멘토의 정보 배열, isActive는 현재 접속중인 유저인지 아닌지를 나타냄. 만약 세션에 조건에 맞는 멘토가 5명 이상이라면 접속중인 멘토만 반환하고, 부족하면 부족한 분 만큼 디비에서 찾아서 추가함',
+    example:{
+      'message':'멘토 정보를 성공적으로 불러왔습니다.',
+      'info': [
+        {
+          id:'1',
+          name:'문성윤',
+          useLanguage:'[\"Java\",\"Python\"]',
+          position:1,
+          profilePicture:'http://imgurl.com',
+          googleId:'1578648432159',
+          isActive:true
+        }
+      ]
+    }
+  })
+  @Get('mento')
+  async getFiveMento(@Query('language') language:string){
+    return {
+      message:'멘토 정보를 성공적으로 불러왔습니다.',
+      info: await this.authService.findAllMento(language)
+    }
   }
 }
