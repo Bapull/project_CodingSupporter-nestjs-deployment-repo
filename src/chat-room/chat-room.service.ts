@@ -1,20 +1,32 @@
 import { Injectable } from '@nestjs/common';
 import { CreateChatRoomDto } from './dto/create-chat-room.dto';
-import { InjectRepository } from '@nestjs/typeorm';
 import { ChatRoom } from './entities/chat-room.entity';
-import { Repository } from 'typeorm';
+import { DataSource } from 'typeorm';
 
 @Injectable()
 export class ChatRoomService {
-  constructor(@InjectRepository(ChatRoom) private readonly chatRoomRepository:Repository<ChatRoom>){}
+  constructor(
+    private readonly dataSource: DataSource
+  ){}
   async create(dto: CreateChatRoomDto) {
-    const newChatRoom = await this.chatRoomRepository.create(dto)
-    return await this.chatRoomRepository.save(newChatRoom)
+    const queryRunner = await this.dataSource.createQueryRunner()
+    await queryRunner.connect()
+    await queryRunner.startTransaction()
+    try{
+      await queryRunner.manager.save(ChatRoom, dto)
+      await queryRunner.commitTransaction()
+    }catch(e){
+      queryRunner.rollbackTransaction()
+      console.error(e)
+      throw e
+    }finally{
+      queryRunner.release()
+    }
   }
 
   async findAll(userId: string) {
-    const receivce = await this.chatRoomRepository
-    .createQueryBuilder('chatroom')
+    const receivce = await this.dataSource.createQueryBuilder()
+    .from(ChatRoom,'chatroom')
     .select('chatroom.id AS id, chatroom.receiver AS receiver, chatroom.sender AS sender')
     .where(`receiver=${userId}`)
     .orWhere(`sender=${userId}`)
@@ -24,7 +36,6 @@ export class ChatRoomService {
   }
 
   async findOne(id: number) {
-    return await this.chatRoomRepository
-    .findOneBy({id:id})
+    return await this.dataSource.manager.findOneBy(ChatRoom,{id:id})
   }
 }

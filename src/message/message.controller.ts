@@ -43,10 +43,10 @@ export class MessageController {
   @ApiResponseMessage('해당 채팅방의 참여인원이 아닌 경우',HttpStatus.UNAUTHORIZED,'해당 방의 메시지를 불러올 권한이 없습니다.')
   @UseGuards(MessageGuard)
   @Get(':room')
-  async findAll(@Param('room') room:string, @Req() request) {
+  async findAll(@Param('room') room:string) {
     return {
       message:'채팅내역을 불러왔습니다.',
-      data: await this.messageService.findAll(+room)
+      data: await this.messageService.findAll(room)
     }
   }
 }

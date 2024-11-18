@@ -3,33 +3,43 @@ import { CreateIncorrectNoteDto } from './dto/create-incorrect-note.dto';
 import { UpdateIncorrectNoteDto } from './dto/update-incorrect-note.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { IncorrectNote } from './entities/incorrect-note.entity';
-import { Repository } from 'typeorm';
+import { DataSource, Repository } from 'typeorm';
 import { S3Service } from 'src/s3/s3.service';
 import { SaveIncorrectNoteDto } from './dto/save-incorrect-note.dto';
 
 
 @Injectable()
 export class IncorrectNoteService {
-  constructor(@InjectRepository(IncorrectNote) private readonly incorrectRepository:Repository<IncorrectNote>,
+  constructor(
+    private readonly dataSource:DataSource,
     private readonly s3Service: S3Service
   ) {}
 
   async saveNote(dto: SaveIncorrectNoteDto, userId: number) {
-    const noteName = dto.mdFile.match(/-------------------\n(.*)\n/)[1].trim();
-    const mdFile = await this.s3Service.uploadMdFile(dto.mdFile,noteName);
-    const newNote = await this.incorrectRepository.create({
-      language: dto.language,
-      errorType: parseInt(dto.errorType),
-      studentId: userId,
-      mentoId: null,
-      noteName: mdFile.Key.replace('incorrect-notes/',''),
-      chatName: null
-    })
-    return await this.incorrectRepository.save(newNote)
+    const queryRunner = await this.dataSource.createQueryRunner()
+    await queryRunner.connect()
+    await queryRunner.startTransaction()
+    try{
+      const noteName = dto.mdFile.match(/-------------------\n(.*)\n/)[1].trim();
+      const mdFile = await this.s3Service.uploadMdFile(dto.mdFile,noteName);
+      const newNote = new IncorrectNote()
+      newNote.language = dto.language,
+      newNote.errorType = parseInt(dto.errorType)
+      newNote.studentId = userId,
+      newNote.noteName = mdFile.Key.replace('incorrect-notes/','')
+      await queryRunner.manager.save(IncorrectNote, newNote)
+      await queryRunner.commitTransaction()
+    }catch(e){
+      await queryRunner.rollbackTransaction()
+      console.error(e)
+      throw e
+    }finally{
+      await queryRunner.release()
+    }
   }
 
   async downloadMdFile(fileName:string, userId:number, userPosition:number){
-    const note = await this.incorrectRepository.findOneBy({
+    const note = await this.dataSource.manager.findOneBy(IncorrectNote,{
       noteName:fileName
     })
     if(!note){
@@ -52,8 +62,8 @@ export class IncorrectNoteService {
 
   async folder(userId:number, userPosition:number){
     const column = userPosition == 1 ? 'mentoId': 'studentId'
-    const count = await this.incorrectRepository
-      .createQueryBuilder('note')
+    const count = await this.dataSource.createQueryBuilder()
+      .from(IncorrectNote, 'note')    
       .select('note.language')
       .where({[column]:userId})
       .addSelect('GROUP_CONCAT(DISTINCT note.errorType) AS errorTypes')
@@ -71,8 +81,8 @@ export class IncorrectNoteService {
   
   async errorInfo(userId:number, userPosition:number){
     const column = userPosition == 1 ? 'mentoId': 'studentId'
-    const count = await this.incorrectRepository
-    .createQueryBuilder('note')
+    const count = await this.dataSource.createQueryBuilder()
+    .from(IncorrectNote, 'note')
     .select('note.errorType')
     .addSelect('COUNT(note.id)','count')
     .where({[column]:userId})
@@ -89,7 +99,8 @@ export class IncorrectNoteService {
 
   async findByLanguageAndErrorType(id: number, language: string, errorType: string, userPosition: number) {
     const column = userPosition == 1 ? 'mentoId' : 'studentId';
-    return await this.incorrectRepository.createQueryBuilder('note')
+    return await this.dataSource.createQueryBuilder()
+      .from(IncorrectNote, 'note')
       .select(['note.id AS id', 'note.noteName AS noteName']) 
       .where({ [column]: id })
       .andWhere({ language: language })
@@ -97,105 +108,53 @@ export class IncorrectNoteService {
       .getRawMany();
   }
   
-
-  async create(createIncorrectNoteDto: CreateIncorrectNoteDto) {
-    const incorrectNote = this.incorrectRepository.create(createIncorrectNoteDto);
-    return await this.incorrectRepository.save(incorrectNote);
-  }
   
-  async findForMento(mentoId: string){
-    const id = parseInt(mentoId);
-    if(isNaN(id)){
-      throw new HttpException(
-        {
-          message: 'id가 쿼리파라미터에 없거나 숫자가 아닙니다.',
-        },
-        HttpStatus.BAD_REQUEST,
-      )
-    }
-    if(id<1){
-      throw new HttpException(
-        {
-          message: 'id는 0보다 큰 숫자여야 합니다.',
-        },
-        HttpStatus.BAD_REQUEST,
-      )
-    }
-    return await this.incorrectRepository.find({
-      where: {mentoId:id}
-    });
-  }
-
-  async findForStudent(studentId: string){
-    const id = parseInt(studentId);
-    if(isNaN(id)){
-      throw new HttpException(
-        {
-          message: 'id가 쿼리파라미터에 없거나 숫자가 아닙니다.',
-        },
-        HttpStatus.BAD_REQUEST,
-      )
-    }
-    if(id<1){
-      throw new HttpException(
-        {
-          message: 'id는 0보다 큰 숫자여야 합니다.',
-        },
-        HttpStatus.BAD_REQUEST,
-      )
-    }
-    return await this.incorrectRepository.find({
-      where: {studentId:id}
-    });
-  }
-
-  async findOne(noteId: string) {
-    const id = parseInt(noteId);
-    if(isNaN(id)){
-      throw new HttpException(
-        {
-          message: 'id가 path에 없거나 숫자가 아닙니다.',
-        },
-        HttpStatus.BAD_REQUEST,
-      )
-    }
-    if(id<1){
-      throw new HttpException(
-        {
-          message: 'id는 0보다 큰 숫자여야 합니다.',
-        },
-        HttpStatus.BAD_REQUEST,
-      )
-    }
-    return await this.incorrectRepository.findOneBy(
-      {id:id}
-    );
-  }
-
-  async update(id: string, updateIncorrectNoteDto: UpdateIncorrectNoteDto) {
-    const note = await this.incorrectRepository.findOneBy(
+  async update(userId:number, id: string, updateIncorrectNoteDto: UpdateIncorrectNoteDto) {
+    
+    const note = await this.dataSource.manager.findOneBy(
+      IncorrectNote,
       {id:parseInt(id)}
     );
     if(!note){
       throw new Error('id값에 해당되는 노트가 없습니다.')
     }
-    Object.assign(note,updateIncorrectNoteDto);
-    await this.incorrectRepository.save(note)
+    if(note.studentId != userId){
+      throw new Error('권한이 없습니다.')
+    }
+
+    const queryRunner = await this.dataSource.createQueryRunner()
+    await queryRunner.connect()
+    await queryRunner.startTransaction()
+    try{
+      await queryRunner.manager.update(IncorrectNote,{id:parseInt(id)},updateIncorrectNoteDto)
+	    await queryRunner.commitTransaction()
+    }catch(e){
+      await queryRunner.rollbackTransaction()
+      console.error(e)
+      throw e
+    }finally{
+      await queryRunner.release()
+    }
   }
 
-  async remove(id: string) {
-    const note = await this.incorrectRepository.findOneBy(
+  async remove(userId:number, id: string) {
+    const note = await this.dataSource.manager.findOneBy(
+      IncorrectNote,
       {id:parseInt(id)}
     );
     if(!note){
       throw new Error('id값에 해당되는 노트가 없습니다.')
     }
-    await this.incorrectRepository.remove(note)
+    if(note.studentId != userId){
+      throw new Error('권한이 없습니다.')
+    }
+    await this.dataSource.manager.delete(IncorrectNote,{id:parseInt(id)})
   }
 
   async graphInfo(userId: number,userPosition:number){
     const column = userPosition == 1 ? 'mentoId' : 'studentId';
-    const info = await this.incorrectRepository.createQueryBuilder('note')
+    const info = await this.dataSource.createQueryBuilder()
+    .from(IncorrectNote, 'note')
     .select('note.language')
     .addSelect('COUNT(note.id) AS count')
     .groupBy('note.language')

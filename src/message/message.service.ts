@@ -1,19 +1,31 @@
 import { Injectable } from '@nestjs/common';
 import { CreateMessageDto } from './dto/create-message.dto';
-import { InjectModel } from '@nestjs/mongoose';
-import { Message } from './schemas/message.schema';
-import { Model } from 'mongoose'
+import { Message } from './entities/message.entity'
+import { DataSource } from 'typeorm';
 
 @Injectable()
 export class MessageService {
-  constructor(@InjectModel(Message.name) private messageModel: Model<Message>){}
+  constructor(
+    private readonly dataSource:DataSource
+  ){}
   async create(createMessageDto: CreateMessageDto) {
-    const createdMessage = new this.messageModel(createMessageDto);
-    return await createdMessage.save()
+    const queryRunner = await this.dataSource.createQueryRunner()
+    await queryRunner.connect()
+    await queryRunner.startTransaction()
+    try{
+      await queryRunner.manager.save(Message, createMessageDto)
+	    await queryRunner.commitTransaction()
+    }catch(e){
+      await queryRunner.rollbackTransaction()
+      console.error(e)
+      throw e
+    }finally{
+      await queryRunner.release()
+    }
   }
 
-  async findAll(room:number) {
-    return await this.messageModel.find({room:room}).exec();
+  async findAll(room:string) {
+    return await this.dataSource.manager.findBy(Message, {room:room})
   }
 
 }
