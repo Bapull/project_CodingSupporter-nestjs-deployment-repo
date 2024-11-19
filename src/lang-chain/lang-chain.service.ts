@@ -26,7 +26,7 @@ export class LangChainService {
 
     this.codePrompt = PromptTemplate.fromTemplate(
       `다음 코드를 읽고 밑의 질문에 하나씩 답해주세요
-      1. 해당 코드는 어떤 언어로 작성되었습니까? 만약 C언어로 작성되어있다면, 그냥 C라고만 답하고, 다른 단어는 말하지 마세요.
+      1. 해당 코드는 어떤 언어로 작성되었습니까? 만약 C언어로 작성되어있다면, 그냥 C라고만 답하고, 다른 단어는 말하지 마세요. 알파벳으로만 작성해주세요. 모든 글자는 대문자로 작성해주세요.
       2. 해당 코드에서 발생한 문제를 한 문장으로 설명해주세요.
       3. 이 코드에서 문제가 있는 부분은 어디인가요? 문제가 있는 코드만 알려주세요.
       4. 이 코드의 에러의 종류는 어떤건가요? 만약 논리적 오류라면 1이라고 답해주세요. 문법 오류라면 2라고, 런타임 오류라면 3으로, 다른 거라면 4라고 답해주세요.
@@ -65,12 +65,12 @@ export class LangChainService {
     const languageResult = await this.parser.invoke( await this.model.invoke(
       await this.codePrompt.format({code:code})
     ))
-    const temp = JSON.stringify(languageResult)
+    const mdResult = await this.parser.invoke( await this.model.invoke(
+      await this.mdPrompt.format({response:languageResult})
+    ))
     return {
       json: JSON.stringify(languageResult),
-      mdFile:  await this.parser.invoke( await this.model.invoke(
-        await this.mdPrompt.format({response:languageResult})
-      ))
+      mdFile:  mdResult
     }
   }
 }

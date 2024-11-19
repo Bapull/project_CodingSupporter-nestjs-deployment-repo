@@ -117,11 +117,20 @@ export class UserService {
     let response = []
     if(ids.length > 0){
       const user = await this.dataSource.createQueryBuilder()
+      .select('user.id')
+      .addSelect('user.name')
+      .addSelect('user.useLanguage')
+      .addSelect('user.position')
+      .addSelect('user.profilePicture')
       .from(User,'user')
-      .where('user.id IN (:...ids)',{ids})
+      .where('user.position = 1')
+      .andWhere('user.id IN (:...ids)',{ids})
       .andWhere('user.useLanguage LIKE :language', {language: `%"${language}"%`})
       .getMany()
-
+      console.log(ids)
+      console.log(language)
+      console.log(await user)
+      
       const appendPropertyUser = user.map((item)=>{
         return {...item, isActive:true}
       })
@@ -130,6 +139,11 @@ export class UserService {
     
     if(response.length < 5){
       const notActiveUser = await this.dataSource.createQueryBuilder()
+      .select('user.id')
+      .addSelect('user.name')
+      .addSelect('user.useLanguage')
+      .addSelect('user.position')
+      .addSelect('user.profilePicture')
       .from(User,'user')
       .where('user.useLanguage LIKE :language',{language: `%"${language}"%`})
       .andWhere('user.position = 1')

@@ -52,7 +52,8 @@ export class IncorrectNoteController {
   @ApiBody({ type: GenerateIncorrectNoteDto })
   @Post('generate')
   async generate(@Body() dto: GenerateIncorrectNoteDto, @Req() request) {
-    const {json, mdFile} =  await this.langChainService.callModel(dto.code, dto.question)
+    try{
+      const {json, mdFile} =  await this.langChainService.callModel(dto.code, dto.question)
       return {
         message: '오답노트를 성공적으로 생성했습니다.',
         data: {
@@ -61,6 +62,16 @@ export class IncorrectNoteController {
           mdFile:mdFile
         }
       }
+    }catch{
+      return {
+        message: '오답노트를 생성하지 못했습니다.',
+        data: {
+          language:'',
+          errorType:'',
+          mdFile:'오답노트를 생성하지 못했습니다. 코드에서 문제를 찾지 못했거나, 코드가 너무 짧을 수 있습니다.'
+        }
+      }
+    }
   }
 
   @ApiOperation({summary:"오답노트 상세 정보 불러오기"})

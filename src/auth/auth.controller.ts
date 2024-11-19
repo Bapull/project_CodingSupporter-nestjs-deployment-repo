@@ -53,7 +53,6 @@ export class AuthController {
           useLanguage:'[\"Java\",\"Python\"]',
           position:1,
           profilePicture:'http://imgurl.com',
-          googleId:'1578648432159',
           isActive:true
         }
       ]

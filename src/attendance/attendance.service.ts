@@ -26,10 +26,10 @@ export class AttendanceService {
       await queryRunner.manager.save(Attendance,{userId:userId,checkInTime:formattedDate})
       await queryRunner.commitTransaction()
     }catch(e){
-      queryRunner.rollbackTransaction()
+      await queryRunner.rollbackTransaction()
       throw e
     }finally{
-      queryRunner.release()
+      await queryRunner.release()
     }
   }
 
