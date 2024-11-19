@@ -127,9 +127,6 @@ export class UserService {
       .andWhere('user.id IN (:...ids)',{ids})
       .andWhere('user.useLanguage LIKE :language', {language: `%"${language}"%`})
       .getMany()
-      console.log(ids)
-      console.log(language)
-      console.log(await user)
       
       const appendPropertyUser = user.map((item)=>{
         return {...item, isActive:true}
