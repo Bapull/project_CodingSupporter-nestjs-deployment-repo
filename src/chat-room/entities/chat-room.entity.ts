@@ -7,8 +7,8 @@ export class ChatRoom {
     id:number;
 
     @Column()
-    sender:string;
+    sender:number;
 
     @Column()
-    receiver:string;
+    receiver:number;
 }

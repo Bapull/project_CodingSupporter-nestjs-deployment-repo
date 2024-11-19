@@ -36,6 +36,6 @@ export class CreateIncorrectNoteDto{
     example: 1,
     description: '멘토와 한 채팅명'
   })
-  @IsString()
-  chatName: string;
+  @IsInt()
+  chatName: number;
 }
