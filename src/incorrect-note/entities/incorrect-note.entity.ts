@@ -15,5 +15,5 @@ export class IncorrectNote {
   @Column()
   noteName: string; 
   @Column({nullable: true})
-  chatName: string;
+  chatName: number;
 }
