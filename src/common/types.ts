@@ -19,3 +19,8 @@ export type SessionData = {
     user:number
   }
 }
+export interface EmailOption{
+  to: string;
+  subject: string;
+  html: string;
+}

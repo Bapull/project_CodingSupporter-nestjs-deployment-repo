@@ -19,6 +19,8 @@ import { ChatRoomModule } from './chat-room/chat-room.module';
 import { ChatRoom } from './chat-room/entities/chat-room.entity';
 import { MessageModule } from './message/message.module';
 import { Message } from './message/entities/message.entity';
+import { EmailService } from './email/email.service';
+import { EmailModule } from './email/email.module';
 
 @Module({
   imports: [
@@ -48,8 +50,9 @@ import { Message } from './message/entities/message.entity';
     ChatModule,
     ChatRoomModule,
     MessageModule,
+    EmailModule,
   ],
   controllers: [AppController],
-  providers: [AppService, S3Service],
+  providers: [AppService, S3Service, EmailService],
 })
 export class AppModule {}
