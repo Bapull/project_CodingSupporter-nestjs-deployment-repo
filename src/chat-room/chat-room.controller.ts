@@ -26,6 +26,8 @@ export class ChatRoomController {
     example:1
   })
   @ApiResponseMessage('알림 생성완료', HttpStatus.CREATED, '채팅방을 생성했습니다.')
+  @ApiResponseMessage('오답노트가 본인의 것이 아닌 경우', HttpStatus.FORBIDDEN, '권한이 없습니다.')
+  @ApiResponseMessage('이미 다른 멘토와 공유된 오답노트인 경우', HttpStatus.BAD_REQUEST, '이미 멘토가 설정된 오답노트 입니다.')
   @Post('chat-request')
   async create(@Req() request, @Query('mento-id') mentoId:number, @Query('note-id') noteId:string) {
     await this.chatRoomService.create({receiver: mentoId, sender:request.user.id}, +noteId);

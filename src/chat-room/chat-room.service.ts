@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, ForbiddenException, Injectable } from '@nestjs/common';
 import { CreateChatRoomDto } from './dto/create-chat-room.dto';
 import { ChatRoom } from './entities/chat-room.entity';
 import { DataSource } from 'typeorm';
@@ -14,15 +14,22 @@ export class ChatRoomService {
     await queryRunner.connect()
     await queryRunner.startTransaction()
     try{
+      const note = await this.dataSource.manager.findOneBy(IncorrectNote,{id:noteId})
+      if(note.studentId != dto.sender){
+        throw new ForbiddenException('권한이 없습니다.')
+      }
+      if(note.mentoId){
+        throw new BadRequestException('이미 멘토가 설정된 오답노트 입니다.')
+      }
       const chatRoom = await queryRunner.manager.save(ChatRoom, dto)
+      
       await queryRunner.manager.update(IncorrectNote,{id:noteId},{mentoId:dto.receiver, chatName:chatRoom.id})
       await queryRunner.commitTransaction()
     }catch(e){
-      queryRunner.rollbackTransaction()
-      console.error(e)
+      await queryRunner.rollbackTransaction()
       throw e
     }finally{
-      queryRunner.release()
+      await queryRunner.release()
     }
   }
 
