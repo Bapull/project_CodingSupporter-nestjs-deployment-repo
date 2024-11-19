@@ -1,25 +1,40 @@
 import { Injectable } from '@nestjs/common';
-import { CreateAttendanceDto } from './dto/create-attendance.dto';
-import { InjectRepository } from '@nestjs/typeorm';
 import { Attendance } from './entities/attendance.entity';
-import { Repository } from 'typeorm';
+import { DataSource } from 'typeorm';
 
 @Injectable()
 export class AttendanceService {
-  constructor(@InjectRepository(Attendance) private readonly attendanceRepository:Repository<Attendance>){}
+  constructor(private readonly dataSource:DataSource){}
   
-  async create(createAttendanceDto: CreateAttendanceDto) {
-    const attendance = this.attendanceRepository.create(createAttendanceDto)
-    return await this.attendanceRepository.save(attendance)
+  async create(userId: number) {
+
+    const date = new Date();
+    const formatter = new Intl.DateTimeFormat('ko-KR', {
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      timeZone: 'Asia/Seoul'
+    });
+    
+    const formattedDate = formatter.format(date).replace(/\. /g, '-').replace('.', '');
+
+    const queryRunner = await this.dataSource.createQueryRunner()
+    await queryRunner.connect()
+    await queryRunner.startTransaction()
+    
+    try{
+      await queryRunner.manager.save(Attendance,{userId:userId,checkInTime:formattedDate})
+      await queryRunner.commitTransaction()
+    }catch(e){
+      await queryRunner.rollbackTransaction()
+      throw e
+    }finally{
+      await queryRunner.release()
+    }
   }
 
   async findAll(userId:number) {
-    const attendance = await this.attendanceRepository.findBy({userId:userId})
-    const dateArray = []
-    for (let index = 0; index < attendance.length; index++) {
-      const element = attendance[index];
-      dateArray.push(element['checkInTime'])
-    }
-    return dateArray
+    const attendance = await this.dataSource.manager.findBy(Attendance, {userId:userId})
+    return attendance.map((item)=>item.checkInTime)
   }
 }

@@ -4,44 +4,83 @@ import { UpdateUserNameDto } from './dto/update-user-name.dto';
 import { UpdateUserLanguageDto } from './dto/update-user-language.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { User } from './entities/user.entity';
-import { Repository } from 'typeorm';
+import { DataSource, Repository } from 'typeorm';
 
 @Injectable()
 export class UserService {
-  constructor(@InjectRepository(User) private readonly userRepository:
-  Repository<User>){}
+  constructor(
+    private readonly dataSource:DataSource
+  ){}
 
   async createNewUser(createUserDto: CreateUserDto) {
-    const newUser = this.userRepository.create(createUserDto)
-    return this.userRepository.save(newUser)
+    const queryRunner = await this.dataSource.createQueryRunner()
+    await queryRunner.connect()
+    await queryRunner.startTransaction()
+    try{
+      await queryRunner.manager.save(User,createUserDto)
+	    await queryRunner.commitTransaction()
+    }catch(e){
+      await queryRunner.rollbackTransaction()
+      console.error(e)
+      throw e
+    }finally{
+      await queryRunner.release()
+    }
   }
   
   async findOneById(id:number){
-    return await this.userRepository.findOneBy({id:id})
+    return await this.dataSource.manager.findOneBy(User,{id:id})
   }
 
   async findOneByGoogleId(id:string){
-    return await this.userRepository.findOneBy({googleId: id})
+    return await this.dataSource.manager.findOneBy(User,{googleId: id})
   }
 
   async updateName(id: number, updateUserDto: UpdateUserNameDto) {
-    const user = await this.userRepository.findOneBy({id:id})
+    const user = await this.dataSource.manager.findOneBy(User,{id:id})
     if(!user){
       throw new Error('해당 유저를 찾지 못했습니다.')
     }
     Object.assign(user,updateUserDto)
-    return await this.userRepository.save(user)
+
+    const queryRunner = await this.dataSource.createQueryRunner()
+    await queryRunner.connect()
+    await queryRunner.startTransaction()
+    try{
+      await queryRunner.manager.save(User,user)
+	    await queryRunner.commitTransaction()
+    }catch(e){
+      await queryRunner.rollbackTransaction()
+      console.error(e)
+      throw e
+    }finally{
+      await queryRunner.release()
+    }
   }
   async updateLanguage(id: number, updateUserDto: UpdateUserLanguageDto) {
-    const user = await this.userRepository.findOneBy({id:id})
+    const user = await this.dataSource.manager.findOneBy(User,{id:id})
     if(!user){
       throw new Error('해당 유저를 찾지 못했습니다.')
     }
     Object.assign(user,updateUserDto)
-    return await this.userRepository.save(user)
+
+    const queryRunner = await this.dataSource.createQueryRunner()
+    await queryRunner.connect()
+    await queryRunner.startTransaction()
+    try{
+      await queryRunner.manager.save(User,user)
+	    await queryRunner.commitTransaction()
+    }catch(e){
+      await queryRunner.rollbackTransaction()
+      console.error(e)
+      throw e
+    }finally{
+      await queryRunner.release()
+    }
+    
   }
   async updatePosition(id: number) {
-    const user = await this.userRepository.findOneBy({id:id})
+    const user = await this.dataSource.manager.findOneBy(User,{id:id})
     if(!user){
       throw new Error('해당 유저를 찾지 못했습니다.')
     }
@@ -50,7 +89,19 @@ export class UserService {
     }else{
       Object.assign(user,{position:1})
     }
-    return await this.userRepository.save(user)
+    const queryRunner = await this.dataSource.createQueryRunner()
+    await queryRunner.connect()
+    await queryRunner.startTransaction()
+    try{
+      await queryRunner.manager.save(User,user)
+	    await queryRunner.commitTransaction()
+    }catch(e){
+      await queryRunner.rollbackTransaction()
+      console.error(e)
+      throw e
+    }finally{
+      await queryRunner.release()
+    }
   }
 
   async isMentoAndIsProper(ids:number[],language:string){
@@ -65,11 +116,21 @@ export class UserService {
 
     let response = []
     if(ids.length > 0){
-      const user = await this.userRepository.createQueryBuilder('user')
-      .where('user.id IN (:...ids)',{ids})
+      const user = await this.dataSource.createQueryBuilder()
+      .select('user.id')
+      .addSelect('user.name')
+      .addSelect('user.useLanguage')
+      .addSelect('user.position')
+      .addSelect('user.profilePicture')
+      .from(User,'user')
+      .where('user.position = 1')
+      .andWhere('user.id IN (:...ids)',{ids})
       .andWhere('user.useLanguage LIKE :language', {language: `%"${language}"%`})
       .getMany()
-
+      console.log(ids)
+      console.log(language)
+      console.log(await user)
+      
       const appendPropertyUser = user.map((item)=>{
         return {...item, isActive:true}
       })
@@ -77,7 +138,13 @@ export class UserService {
     }
     
     if(response.length < 5){
-      const notActiveUser = await this.userRepository.createQueryBuilder('user')
+      const notActiveUser = await this.dataSource.createQueryBuilder()
+      .select('user.id')
+      .addSelect('user.name')
+      .addSelect('user.useLanguage')
+      .addSelect('user.position')
+      .addSelect('user.profilePicture')
+      .from(User,'user')
       .where('user.useLanguage LIKE :language',{language: `%"${language}"%`})
       .andWhere('user.position = 1')
       .getMany()

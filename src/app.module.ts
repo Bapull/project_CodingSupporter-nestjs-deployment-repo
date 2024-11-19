@@ -14,12 +14,11 @@ import { Attendance } from './attendance/entities/attendance.entity';
 import { LangChainModule } from './lang-chain/lang-chain.module';
 import { S3Service } from './s3/s3.service';
 import { S3Module } from './s3/s3.module';
-import { ChatGateway } from './chat/chat.gateway';
 import { ChatModule } from './chat/chat.module';
 import { ChatRoomModule } from './chat-room/chat-room.module';
 import { ChatRoom } from './chat-room/entities/chat-room.entity';
-import { MongooseModule } from '@nestjs/mongoose';
 import { MessageModule } from './message/message.module';
+import { Message } from './message/entities/message.entity';
 
 @Module({
   imports: [
@@ -35,15 +34,9 @@ import { MessageModule } from './message/message.module';
         username: config.get<string>('DB_USERNAME'),
         password: config.get<string>('DB_PASSWORD'),
         database: config.get<string>('DB_DATABASE'),
-        entities: [IncorrectNote, User, Attendance, ChatRoom],
+        entities: [IncorrectNote, User, Attendance, ChatRoom, Message],
         synchronize: true,
       }),
-    }),
-    MongooseModule.forRootAsync({
-      inject:[ConfigService],
-      useFactory:(config: ConfigService)=>({
-        uri: config.get<string>('MONGODB')
-      })
     }),
     IncorrectNoteModule,
     AuthModule,

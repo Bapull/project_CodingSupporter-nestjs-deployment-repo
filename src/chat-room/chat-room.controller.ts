@@ -23,10 +23,7 @@ export class ChatRoomController {
   @ApiResponseMessage('알림 생성완료', HttpStatus.CREATED, '채팅방을 생성했습니다.')
   @Post('chat-request')
   async create(@Req() request, @Query('id') id:string) {
-    const newChatRoom = new CreateChatRoomDto();
-    newChatRoom.receiver = id
-    newChatRoom.sender = request.user.id
-    await this.chatRoomService.create(newChatRoom);
+    await this.chatRoomService.create({receiver: id, sender:request.user.id});
     return {
       message: '채팅방을 생성했습니다.'
     }

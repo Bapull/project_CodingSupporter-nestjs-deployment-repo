@@ -2,7 +2,7 @@ import { Controller, Get, Post, Body, Param, Delete, HttpStatus, HttpException, 
 import { IncorrectNoteService } from './incorrect-note.service';
 import { CreateIncorrectNoteDto } from './dto/create-incorrect-note.dto';
 import { UpdateIncorrectNoteDto } from './dto/update-incorrect-note.dto';
-import { ApiBody, ApiOperation, ApiQuery, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { ApiBody, ApiOperation, ApiParam, ApiQuery, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { GenerateIncorrectNoteDto } from './dto/generate-incorrect-note.dto';
 import { LangChainService } from 'src/lang-chain/lang-chain.service'
 import { SaveIncorrectNoteDto } from './dto/save-incorrect-note.dto';
@@ -51,8 +51,9 @@ export class IncorrectNoteController {
   })
   @ApiBody({ type: GenerateIncorrectNoteDto })
   @Post('generate')
-  async postTest(@Body() dto: GenerateIncorrectNoteDto, @Req() request) {
-    const {json, mdFile} =  await this.langChainService.callModel(dto.code, dto.question)
+  async generate(@Body() dto: GenerateIncorrectNoteDto, @Req() request) {
+    try{
+      const {json, mdFile} =  await this.langChainService.callModel(dto.code, dto.question)
       return {
         message: '오답노트를 성공적으로 생성했습니다.',
         data: {
@@ -61,6 +62,16 @@ export class IncorrectNoteController {
           mdFile:mdFile
         }
       }
+    }catch{
+      return {
+        message: '오답노트를 생성하지 못했습니다.',
+        data: {
+          language:'',
+          errorType:'',
+          mdFile:'오답노트를 생성하지 못했습니다. 코드에서 문제를 찾지 못했거나, 코드가 너무 짧을 수 있습니다.'
+        }
+      }
+    }
   }
 
   @ApiOperation({summary:"오답노트 상세 정보 불러오기"})
@@ -86,24 +97,12 @@ export class IncorrectNoteController {
   })
   @ApiResponseMessage('note-name 쿼리파라미터가 필요함', HttpStatus.BAD_REQUEST, 'note-name 쿼리파라미터가 필요합니다.')
   @Get('s3')
-  @UsePipes(new ValidationPipe({ transform: true }))
   async getS3File(@Query() query: GetS3FileDto, @Req() request) {
-    try {
-      const {noteInfo, mdFile} = await this.incorrectNoteService.downloadMdFile(query['note-name'], request.user.id, request.user.position)
-      return {
-        message: '오답노트 상세 정보를 성공적으로 불러왔습니다.',
-        noteInfo: noteInfo,
-        mdFile: mdFile.Body.toString()
-      }
-    } catch(error) {
-      throw new HttpException(
-        {
-          STATUS_CODES: HttpStatus.BAD_REQUEST,
-          message: '오답노트 정보를 불러오지 못 했습니다.',
-          error: error.message,
-        },
-        HttpStatus.BAD_REQUEST,
-      )
+    const {noteInfo, mdFile} = await this.incorrectNoteService.downloadMdFile(query['note-name'], request.user.id, request.user.position)
+    return {
+      message: '오답노트 상세 정보를 성공적으로 불러왔습니다.',
+      noteInfo: noteInfo,
+      mdFile: mdFile.Body.toString()
     }
   }
 
@@ -159,148 +158,33 @@ export class IncorrectNoteController {
     }
   }
 
-  // @ApiOperation({summary:'(테스트용)오답노트 아이디로 오답노트 불러오기'})
-  // @Get(':id')
-  // async findOne(@Param('id') noteId: string) {
-  //   try{
-  //     const data = await this.incorrectNoteService.findOne(noteId);
-  //     if(!data){
-  //       throw new Error('id값에 해당하는 오답노트가 없습니다.')
-  //     }
-  //     return {
-  //       STATUS_CODES: HttpStatus.OK,
-  //       message: '오답노트 정보를 성공적으로 불러왔습니다.',
-  //       data: data,
-  //     }
-  //   }catch(error){
-  //     throw new HttpException(
-  //       {
-  //         STATUS_CODES: HttpStatus.BAD_REQUEST,
-  //         message: '오답노트 정보를 불러오지 못 했습니다.',
-  //         error: error.message,
-  //       },
-  //       HttpStatus.BAD_REQUEST,
-  //     )
-  //   }
-    
-  // }
-
-  @ApiOperation({summary:"(테스트용)오답노트 수정"})
+  @ApiOperation({summary:"오답노트 수정"})
+  @ApiParam({
+    name:'id',
+    description:'오답노트의 아이디',
+    example:'1'
+  })
+  @ApiResponseMessage('오답노트 수정을 성공한 경우',HttpStatus.OK,'오답노트 정보를 성공적으로 수정했습니다.')
   @Put(':id')
-  async update(@Param('id') id: string, @Body() updateIncorrectNoteDto: UpdateIncorrectNoteDto) {
-    try{
-      await this.incorrectNoteService.update(id,updateIncorrectNoteDto);
-      return {
-        STATUS_CODES: HttpStatus.OK,
-        message: '오답노트 정보를 성공적으로 수정했습니다.',
-      }
-    }catch(error){
-      throw new HttpException(
-        {
-          STATUS_CODES: HttpStatus.BAD_REQUEST,
-          message: '오답노트 정보를 수정하지 못 했습니다.',
-          error: error.message,
-        },
-        HttpStatus.BAD_REQUEST,
-      )
+  async update(@Param('id') id: string, @Body() updateIncorrectNoteDto: UpdateIncorrectNoteDto, @Req() request) {
+    await this.incorrectNoteService.update(request.user.id, id,updateIncorrectNoteDto);
+    return {
+      message: '오답노트 정보를 성공적으로 수정했습니다.',
     }
   }
 
-  @ApiOperation({summary:"(테스트용)오답노트 삭제"})
+  @ApiOperation({summary:"오답노트 삭제"})
+  @ApiParam({
+    name:'id',
+    description:'오답노트의 아이디',
+    example:'1'
+  })
+  @ApiResponseMessage('오답노트 삭제를 성공한 경우',HttpStatus.OK,'오답노트 정보를 성공적으로 삭제했습니다.')
   @Delete(':id')
-  async remove(@Param('id') id: string) {
-    try{
-      await this.incorrectNoteService.remove(id);
-      return {
-        STATUS_CODES: HttpStatus.OK,
-        message: '오답노트 정보를 성공적으로 삭제했습니다..',
-      }
-    }catch(error){
-      throw new HttpException(
-        {
-          STATUS_CODES: HttpStatus.BAD_REQUEST,
-          message: '오답노트 정보를 삭제하지 못 했습니다.',
-          error: error.message,
-        },
-        HttpStatus.BAD_REQUEST,
-      )
+  async remove(@Param('id') id: string, @Req() request) {
+    await this.incorrectNoteService.remove(request.user.id, id);
+    return {
+      message: '오답노트 정보를 성공적으로 삭제했습니다.',
     }
   }
-
-  @ApiOperation({summary:"(테스트용)오답노트 추가"})
-  @Post()
-  async create(@Body() createIncorrectNoteDto: CreateIncorrectNoteDto) {
-    try{
-      await this.incorrectNoteService.create(createIncorrectNoteDto);
-      return {
-        STATUS_CODES: HttpStatus.CREATED,
-        message: '저장이 성공적으로 완료되었습니다.',
-      }
-    }catch(error){
-      throw new HttpException(
-        {
-          STATUS_CODES: HttpStatus.BAD_REQUEST,
-          message: '저장에 실패했습니다',
-          error: error.message,
-        },
-        HttpStatus.BAD_REQUEST,
-      )
-    }
-    
-  }
-
-  @ApiOperation({summary:"(테스트용)멘토 아이디로 오답노트 불러오기"})
-  @Get('mento')
-  async findForMento(@Query('id') mentoId: string) {
-    try{
-      const data = await this.incorrectNoteService.findForMento(mentoId)
-      if(typeof data === 'object' && data.length === 0){
-        throw new Error('해당 id의 멘토가 없거나, 아직 답변한 오답노트가 없습니다.')
-      }
-      return {
-        STATUS_CODES: HttpStatus.OK,
-        message: '멘토가 답한 오답노트들의 정보를 성공적으로 불러왔습니다.',
-        data: data,
-      }
-    }catch(error){
-      throw new HttpException(
-        {
-          STATUS_CODES: HttpStatus.BAD_REQUEST,
-          message: '멘토가 답한 오답노트들의 정보를 불러오지 못 했습니다.',
-          error: error.message,
-        },
-        HttpStatus.BAD_REQUEST,
-      )
-    }
-    
-  }
-
-  @ApiOperation({summary:"(테스트용)학생 아이디로 오답노트 불러오기"})
-  @Get('student')
-  async findForStudent(@Query('id') studentId: string) {
-    try{
-      const data = await this.incorrectNoteService.findForStudent(studentId)
-      if(typeof data === 'object' && data.length === 0){
-        throw new Error('해당 id의 학생이 없거나, 아직 만든 오답노트가 없습니다.')
-      }
-      return {
-        STATUS_CODES: HttpStatus.OK,
-        message: '학생의 오답노트 정보를 성공적으로 불러왔습니다.',
-        data: data,
-      }
-    }catch(error){
-      throw new HttpException(
-        {
-          STATUS_CODES: HttpStatus.BAD_REQUEST,
-          message: '학생의 오답노트 정보를 불러오지 못 했습니다.',
-          error: error.message,
-        },
-        HttpStatus.BAD_REQUEST,
-      )
-    }
-    
-  }
-
-  
-
 }

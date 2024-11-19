@@ -7,6 +7,7 @@ import { UpdateUserNameDto } from './dto/update-user-name.dto';
 import { UpdateUserLanguageDto } from './dto/update-user-language.dto';
 import { ApiUnauthorizedResponses, ApiErrorResponse, ApiResponseMessage } from 'src/common/api-response.decorator';
 import { AuthGuard } from 'src/auth/auth.guard';
+import { STATUS_CODES } from 'http';
 
 @ApiTags('user')
 @Controller('user')
@@ -65,27 +66,16 @@ export class UserController {
   @ApiResponseMessage('이미 출석체크를 했습니다.', HttpStatus.BAD_REQUEST, '이미 출석체크를 했습니다.')
   @Post('attendance')
   async makeAttendance(@Req() request) {
-    const date = new Date();
-    const formatter = new Intl.DateTimeFormat('ko-KR', {
-      year: 'numeric',
-      month: '2-digit',
-      day: '2-digit',
-      timeZone: 'Asia/Seoul'
-    });
-    
-    const formattedDate = formatter.format(date).replace(/\. /g, '-').replace('.', '');
-
     try{
-      await this.attendanceService.create({
-        userId: request.user.id,
-        checkInTime: formattedDate
-      });
-    }catch(e){
+      await this.attendanceService.create(request.user.id);
+      return {
+        'message':'출석체크를 완료했습니다.'
+      }
+    }catch{
       throw new BadRequestException('이미 출석체크를 했습니다.');
     }
-    return {
-      'message':'출석체크를 완료했습니다.'
-    }
+    
+    
   }
 
   @ApiOperation({ summary: '그래프 정보 호출' })
