@@ -1,6 +1,7 @@
-import { Column, Entity, PrimaryGeneratedColumn } from "typeorm";
+import { Column, Entity, PrimaryGeneratedColumn, Unique } from "typeorm";
 
 @Entity()
+@Unique(['studentId','noteName','language'])
 export class IncorrectNote {
   @PrimaryGeneratedColumn()
   id: number;

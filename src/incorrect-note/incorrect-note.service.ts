@@ -16,6 +16,7 @@ export class IncorrectNoteService {
   ) {}
 
   async saveNote(dto: SaveIncorrectNoteDto, userId: number) {
+    let savedNote = null;
     const queryRunner = await this.dataSource.createQueryRunner()
     await queryRunner.connect()
     await queryRunner.startTransaction()
@@ -26,16 +27,16 @@ export class IncorrectNoteService {
       newNote.language = dto.language,
       newNote.errorType = parseInt(dto.errorType)
       newNote.studentId = userId,
-      newNote.noteName = mdFile.Key.replace('incorrect-notes/','')
-      await queryRunner.manager.save(IncorrectNote, newNote)
+      newNote.noteName = `${dto.id}` + mdFile.Key.replace('incorrect-notes/','').replace('..','.') 
+      savedNote = await queryRunner.manager.save(IncorrectNote, newNote)
       await queryRunner.commitTransaction()
     }catch(e){
       await queryRunner.rollbackTransaction()
-      console.error(e)
       throw e
     }finally{
       await queryRunner.release()
     }
+    return savedNote
   }
 
   async downloadMdFile(fileName:string, userId:number, userPosition:number){

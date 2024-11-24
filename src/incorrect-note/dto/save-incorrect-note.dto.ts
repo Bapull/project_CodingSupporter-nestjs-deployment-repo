@@ -1,7 +1,15 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsString, Matches, IsIn } from 'class-validator';
+import { IsString, Matches, IsIn, IsNumber } from 'class-validator';
 
 export class SaveIncorrectNoteDto {
+
+  @ApiProperty({
+    example:123213,
+    description:'중복확인을 위한 임의의 숫자'
+  })
+  @IsNumber()
+  id:number
+
   @ApiProperty({
     example: 'Python',
     description: '언어'
