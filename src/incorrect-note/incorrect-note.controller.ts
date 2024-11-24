@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Param, Delete, HttpStatus, HttpException, Query, Put, UsePipes, ValidationPipe, Req, UnauthorizedException, BadRequestException, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, Delete, HttpStatus, HttpException, Query, Put, UsePipes, ValidationPipe, Req, UnauthorizedException, BadRequestException, UseGuards, Res } from '@nestjs/common';
 import { IncorrectNoteService } from './incorrect-note.service';
 import { CreateIncorrectNoteDto } from './dto/create-incorrect-note.dto';
 import { UpdateIncorrectNoteDto } from './dto/update-incorrect-note.dto';
@@ -10,6 +10,8 @@ import { ApiUnauthorizedResponses, ApiErrorResponse, ApiResponseMessage } from '
 import { AuthGuard } from 'src/auth/auth.guard';
 import { GetS3FileDto } from './dto/get-s3-file.dto';
 import { LanguageAndErrorTypeDto } from './dto/language-and-errortype.dto';
+import { STATUS_CODES } from 'http';
+import { json } from 'stream/consumers';
 
 
 @ApiTags('incorrect-note')
@@ -25,13 +27,28 @@ export class IncorrectNoteController {
 
   @ApiOperation({summary:'오답노트 저장하기'})
   @ApiBody({type: SaveIncorrectNoteDto})
-  @ApiResponseMessage('오답노트 저장완료', HttpStatus.CREATED, '오답노트를 저장했습니다.')
+  @ApiResponse({
+    status:HttpStatus.CREATED,
+    description: '오답노트 저장완료',
+    example:{
+      message:'오답노트를 저장했습니다.',
+      noteId:4
+    }
+  })
   @Post('save')
-  async saveNote(@Body() dto: SaveIncorrectNoteDto, @Req() request){
-    await this.incorrectNoteService.saveNote(dto, request.user.id)
-      return {
-        message: '오답노트를 저장했습니다.'
-      }
+  async saveNote(@Body() dto: SaveIncorrectNoteDto, @Req() request, @Res() response){
+    try{
+      const note = await this.incorrectNoteService.saveNote(dto, request.user.id)
+      
+      return response.status(HttpStatus.CREATED).json({
+        message: '오답노트를 저장했습니다.',
+        noteId: note.id
+      })
+    }catch{
+      return response.status(HttpStatus.CONFLICT).json({
+        message:'오답노트를 두 번 저장하려고 했습니다.'
+      })
+    }
   }
 
   @ApiOperation({summary:'오답노트 생성하기'})
@@ -57,6 +74,7 @@ export class IncorrectNoteController {
       return {
         message: '오답노트를 성공적으로 생성했습니다.',
         data: {
+          id: Math.floor(Math.random() * 100000),
           language:json.match(/1\.\s*(\w+)/)[1],
           errorType:json.match(/4\.\s*(\d)/)[1],
           mdFile:mdFile

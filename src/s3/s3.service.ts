@@ -18,7 +18,7 @@ export class S3Service {
 
   async uploadMdFile(content: string, fileName?: string): Promise<AWS.S3.ManagedUpload.SendData> {
     
-    const key = fileName ? `incorrect-notes/${fileName}-${uuid()}.md` : `incorrect-notes/${uuid()}.md`;
+    const key = fileName ? `incorrect-notes/${fileName}.md` : `incorrect-notes/no-name.md`;
 
     const params: AWS.S3.PutObjectRequest = {
       Bucket: this.bucketName,
