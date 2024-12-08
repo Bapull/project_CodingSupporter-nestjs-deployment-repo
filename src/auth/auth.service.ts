@@ -83,6 +83,7 @@ export class AuthService {
         const keys:string[] = reply['keys'];
         const sessionDatas:number[] = await Promise.all(keys.map(async (key)=>{
           const sessionData = await this.redisClient.get(key)
+          console.log(sessionData)
           const json:SessionData = JSON.parse(sessionData)
           return json.passport.user
         }))

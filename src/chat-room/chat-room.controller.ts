@@ -1,9 +1,10 @@
 import { Controller, Get, Post, Body, Patch, Param, Delete, Req, Query, UseGuards, HttpStatus } from '@nestjs/common';
 import { ChatRoomService } from './chat-room.service';
 import { CreateChatRoomDto } from './dto/create-chat-room.dto';
-import { ApiBody, ApiOperation, ApiQuery, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { ApiBody, ApiOperation, ApiParam, ApiQuery, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { ApiUnauthorizedResponses, ApiErrorResponse, ApiResponseMessage } from 'src/common/api-response.decorator';
 import { AuthGuard } from 'src/auth/auth.guard';
+import { IncorrectNoteService } from 'src/incorrect-note/incorrect-note.service';
 
 
 @ApiTags('chat-room')
@@ -12,7 +13,9 @@ import { AuthGuard } from 'src/auth/auth.guard';
 @Controller('chat-room')
 @UseGuards(AuthGuard)
 export class ChatRoomController {
-  constructor(private readonly chatRoomService: ChatRoomService) {}
+  constructor(private readonly chatRoomService: ChatRoomService,
+    private readonly incorrectNoteService:IncorrectNoteService
+  ) {}
 
   @ApiOperation({summary:'멘토와, 노트의 아이디를 받아서, 멘토에게 채팅을 요청하고 오답노트 공유가 가능하도록 오답노트 업데이트'})
   @ApiQuery({
@@ -30,7 +33,8 @@ export class ChatRoomController {
   @ApiResponseMessage('이미 다른 멘토와 공유된 오답노트인 경우', HttpStatus.BAD_REQUEST, '이미 멘토가 설정된 오답노트 입니다.')
   @Post('chat-request')
   async create(@Req() request, @Query('mento-id') mentoId:number, @Query('note-id') noteId:string) {
-    await this.chatRoomService.create({receiver: mentoId, sender:request.user.id}, +noteId);
+    const noteName = await this.incorrectNoteService.getFileNameById(+noteId)
+    await this.chatRoomService.create({receiver: mentoId, sender:request.user.id, noteId:+noteId, noteName:noteName}, +noteId);
     return {
       message: '채팅방을 생성했습니다.'
     }
@@ -49,19 +53,22 @@ export class ChatRoomController {
             "id": 1,
             "receiver": "2",
             "sender": "1",
-            noteName:'노트파일명'
+            noteName:'노트파일명',
+            noteId:1
         },
         {
             "id": 2,
             "receiver": "2",
             "sender": "1",
-            noteName:'노트파일명'
+            noteName:'노트파일명',
+            noteId:1
         },
         {
             "id": 3,
             "receiver": "2",
             "sender": "2",
-            noteName:'노트파일명'
+            noteName:'노트파일명',
+            noteId:1
         }
       ]
     }
@@ -75,4 +82,34 @@ export class ChatRoomController {
     }
   }
 
+  @ApiOperation({summary:'채팅방 하나만 불러오기'})
+  @ApiParam({
+    name:'id',
+    example:1
+  })
+  @ApiResponse({
+    status:HttpStatus.OK,
+    description:'채팅방 정보',
+    example:{
+      message:'채팅방을 성공적으로 불러왔습니다.',
+      data:{
+            "id": 1,
+            "receiver": "2",
+            "sender": "1",
+            noteName:'노트파일명',
+            noteId:1
+        }
+    }
+  })
+  @ApiResponse({
+    description:'해당방의 receiver도 sender도 아닌 경우',
+    status:HttpStatus.FORBIDDEN,
+  })
+  @Get(':id')
+  async findOne(@Req() request, @Param('id') id:string){
+    return {
+      message:'채팅방을 성공적으로 불러왔습니다.',
+      data: await this.chatRoomService.findOneForUser(+id, request.user.id)
+    }
+  }
 }
