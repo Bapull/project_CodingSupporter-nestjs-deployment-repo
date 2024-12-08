@@ -99,7 +99,7 @@ export class ChatGateway {
         const room = await this.chatRoomService.findOne(+message.room)
         const newNotification = new Notification()
         newNotification.message = message.message
-        newNotification.userId = room.receiver === +message.sender ? room.sender : room.receiver
+        newNotification.userId = room.receiver == +message.senderId ? room.sender : room.receiver
         newNotification.type = 'newMessage'
         newNotification.link = `${this.FRONTEND_URL}/mentchat/${room.id}`
         await this.notificationService.create(newNotification)

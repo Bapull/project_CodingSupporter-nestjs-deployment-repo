@@ -31,7 +31,14 @@ export class NotificationController {
     example:{
       message:'알림을 불러왔습니다.',
       data: [
-        '알림 내용들'
+          {
+            id: 13,
+            link: "https://localhost:5173/mentchat/3",
+            message: "11",
+            timestamp: "2024-12-08T12:27:34.575Z",
+            type: "newMessage",
+            userId: 2,
+          }
       ]
     }
   })
@@ -43,7 +50,7 @@ export class NotificationController {
     }
   }
 
-  @ApiOperation({summary:'모든 알림 불러오기'})
+  @ApiOperation({summary:'알림 제거하기'})
   @ApiParam({name:'id',description:'알림의 아이디', example:1})
   @ApiResponseMessage('알림을 제거함',HttpStatus.OK,'알림을 제거했습니다.')
   @Delete(':id')

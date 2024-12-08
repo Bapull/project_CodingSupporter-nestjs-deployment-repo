@@ -18,9 +18,19 @@ export class CreateChatRoomDto {
   @IsString()
   receiver:number
 
+  @ApiProperty({
+    name:'noteId',
+    description:'이 채팅방에 공유된 노트 아이디',
+    example:1
+  })
   @IsInt()
   noteId:number
 
+  @ApiProperty({
+    name:'noteName',
+    description:'이 채팅방에 공유된 노트 이름',
+    example:'아 집가고 싶다.md'
+  })
   @IsString()
   noteName:string
 

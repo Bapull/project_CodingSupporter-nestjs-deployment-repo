@@ -26,6 +26,7 @@ export class NotificationService {
   }
 
   async findAll(userId:number) {
+
     const notification = await this.dataSource.manager.findBy(Notification, {userId:userId})
     return notification
   }

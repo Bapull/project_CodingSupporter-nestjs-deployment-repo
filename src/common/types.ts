@@ -7,6 +7,7 @@ export type Message = {
   message: string;
   room: string;
   sender: string;
+  senderId:number;
 }
 export type Room = {
   id:number;

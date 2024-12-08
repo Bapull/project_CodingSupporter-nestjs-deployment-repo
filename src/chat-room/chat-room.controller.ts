@@ -53,22 +53,19 @@ export class ChatRoomController {
             "id": 1,
             "receiver": "2",
             "sender": "1",
-            noteName:'노트파일명',
-            noteId:1
+            noteName:'노트파일명'
         },
         {
             "id": 2,
             "receiver": "2",
             "sender": "1",
-            noteName:'노트파일명',
-            noteId:1
+            noteName:'노트파일명'
         },
         {
             "id": 3,
             "receiver": "2",
             "sender": "2",
-            noteName:'노트파일명',
-            noteId:1
+            noteName:'노트파일명'
         }
       ]
     }
