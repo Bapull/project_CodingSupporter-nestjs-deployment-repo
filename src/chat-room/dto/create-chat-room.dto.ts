@@ -1,5 +1,5 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { IsString } from "class-validator";
+import { IsInt, IsString } from "class-validator";
 
 export class CreateChatRoomDto {
   @ApiProperty({
@@ -17,5 +17,11 @@ export class CreateChatRoomDto {
   })
   @IsString()
   receiver:number
+
+  @IsInt()
+  noteId:number
+
+  @IsString()
+  noteName:string
 
 }

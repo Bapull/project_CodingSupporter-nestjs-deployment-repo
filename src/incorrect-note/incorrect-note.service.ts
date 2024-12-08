@@ -168,4 +168,9 @@ export class IncorrectNoteService {
     }
     return languageCount
   }
+
+  async getFileNameById(noteId:number){
+    const note = await this.dataSource.manager.findOneBy(IncorrectNote,{id:noteId})
+    return note.noteName
+  }
 }

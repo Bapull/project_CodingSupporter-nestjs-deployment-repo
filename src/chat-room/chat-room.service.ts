@@ -58,6 +58,17 @@ export class ChatRoomService {
   }
 
   async findOne(id: number) {
-    return await this.dataSource.manager.findOneBy(ChatRoom,{id:id})
+
+    const room =  await this.dataSource.manager.findOneBy(ChatRoom,{id:id})
+    
+    return room
+  }
+  async findOneForUser(id: number, userId:number) {
+
+    const room =  await this.dataSource.manager.findOneBy(ChatRoom,{id:id})
+    if(room.receiver !== userId || room.sender !== userId){
+      throw new ForbiddenException('권한이 없습니다.')
+    }
+    return room
   }
 }
