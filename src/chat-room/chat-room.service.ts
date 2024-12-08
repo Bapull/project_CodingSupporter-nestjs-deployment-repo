@@ -3,12 +3,16 @@ import { CreateChatRoomDto } from './dto/create-chat-room.dto';
 import { ChatRoom } from './entities/chat-room.entity';
 import { DataSource } from 'typeorm';
 import { IncorrectNote } from 'src/incorrect-note/entities/incorrect-note.entity';
+import { Notification } from 'src/notification/entities/notification.entity';
+import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class ChatRoomService {
+  FRONTEND_URL;
   constructor(
-    private readonly dataSource: DataSource
-  ){}
+    private readonly dataSource: DataSource,
+    private readonly config:ConfigService
+  ){this.FRONTEND_URL = config.get<string>('FRONTEND_URL')}
   async create(dto: CreateChatRoomDto, noteId:number) {
     const queryRunner = await this.dataSource.createQueryRunner()
     await queryRunner.connect()
@@ -24,6 +28,14 @@ export class ChatRoomService {
       const chatRoom = await queryRunner.manager.save(ChatRoom, dto)
       
       await queryRunner.manager.update(IncorrectNote,{id:noteId},{mentoId:dto.receiver, chatName:chatRoom.id})
+
+      const notification = await queryRunner.manager.create(Notification)
+      notification.message = '새로운 채팅방이 생성되었습니다.'
+      notification.type = 'newRoom'
+      notification.userId = dto.receiver
+      notification.link = `${this.FRONTEND_URL}/mentchat/${chatRoom.id}`
+      await queryRunner.manager.save(Notification,notification)
+
       await queryRunner.commitTransaction()
     }catch(e){
       await queryRunner.rollbackTransaction()

@@ -21,6 +21,8 @@ import { MessageModule } from './message/message.module';
 import { Message } from './message/entities/message.entity';
 import { EmailService } from './email/email.service';
 import { EmailModule } from './email/email.module';
+import { NotificationModule } from './notification/notification.module';
+import { Notification } from './notification/entities/notification.entity';
 
 @Module({
   imports: [
@@ -36,7 +38,7 @@ import { EmailModule } from './email/email.module';
         username: config.get<string>('DB_USERNAME'),
         password: config.get<string>('DB_PASSWORD'),
         database: config.get<string>('DB_DATABASE'),
-        entities: [IncorrectNote, User, Attendance, ChatRoom, Message],
+        entities: [IncorrectNote, User, Attendance, ChatRoom, Message, Notification],
         synchronize: true,
       }),
     }),
@@ -51,6 +53,7 @@ import { EmailModule } from './email/email.module';
     ChatRoomModule,
     MessageModule,
     EmailModule,
+    NotificationModule,
   ],
   controllers: [AppController],
   providers: [AppService, S3Service, EmailService],

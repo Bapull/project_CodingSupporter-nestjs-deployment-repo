@@ -5,6 +5,9 @@ import { MessageService } from 'src/message/message.service';
 import { UseGuards } from '@nestjs/common';
 import { ChatGuard } from './chat.guard';
 import { ChatRoomService } from 'src/chat-room/chat-room.service';
+import { NotificationService } from 'src/notification/notification.service';
+import { Notification } from 'src/notification/entities/notification.entity';
+import { ConfigService } from '@nestjs/config';
 
 @WebSocketGateway({
   cors: {
@@ -12,10 +15,13 @@ import { ChatRoomService } from 'src/chat-room/chat-room.service';
   }
 })
 export class ChatGateway {
+  FRONTEND_URL;
   constructor(
     private readonly messageService:MessageService,
-    private readonly chatRoomService:ChatRoomService
-  ){}
+    private readonly chatRoomService:ChatRoomService,
+    private readonly notificationService:NotificationService,
+    private readonly config:ConfigService
+  ){this.FRONTEND_URL = config.get<string>('FRONTEND_URL')}
   @WebSocketServer()
   server: Server;
 
@@ -55,6 +61,8 @@ export class ChatGateway {
       sender:'server',
       room:message
     });
+
+    
   }
 
   @SubscribeMessage('leave_room')
@@ -82,8 +90,21 @@ export class ChatGateway {
     @ConnectedSocket() client: Socket,
     @MessageBody() message: Message
   ): Promise<void> {
+    
     if(client.rooms.has(message.room)) {
       await this.messageService.create(message)
+
+      const roomSockets = await this.server.in(message.room).fetchSockets()
+      if(roomSockets.length === 1){
+        const room = await this.chatRoomService.findOne(+message.room)
+        const newNotification = new Notification()
+        newNotification.message = message.message
+        newNotification.userId = room.receiver === +message.sender ? room.sender : room.receiver
+        newNotification.type = 'newMessage'
+        newNotification.link = `${this.FRONTEND_URL}/mentchat/${room.id}`
+        await this.notificationService.create(newNotification)
+      }
+
       this.server.to(message.room).emit('message', message);
     }
   }
