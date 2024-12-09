@@ -1,17 +1,19 @@
-import { BadRequestException, ForbiddenException, Injectable } from '@nestjs/common';
+import { BadRequestException, ForbiddenException, Inject, Injectable, LoggerService } from '@nestjs/common';
 import { CreateChatRoomDto } from './dto/create-chat-room.dto';
 import { ChatRoom } from './entities/chat-room.entity';
 import { DataSource } from 'typeorm';
 import { IncorrectNote } from 'src/incorrect-note/entities/incorrect-note.entity';
 import { Notification } from 'src/notification/entities/notification.entity';
 import { ConfigService } from '@nestjs/config';
+import { WINSTON_MODULE_NEST_PROVIDER } from 'nest-winston';
 
 @Injectable()
 export class ChatRoomService {
   FRONTEND_URL;
   constructor(
     private readonly dataSource: DataSource,
-    private readonly config:ConfigService
+    private readonly config:ConfigService,
+    @Inject(WINSTON_MODULE_NEST_PROVIDER) private readonly logger:LoggerService
   ){this.FRONTEND_URL = config.get<string>('FRONTEND_URL')}
   async create(dto: CreateChatRoomDto, noteId:number) {
     const queryRunner = await this.dataSource.createQueryRunner()
@@ -39,6 +41,7 @@ export class ChatRoomService {
       await queryRunner.commitTransaction()
     }catch(e){
       await queryRunner.rollbackTransaction()
+      this.logger.error('error: ', JSON.stringify(e))
       throw e
     }finally{
       await queryRunner.release()

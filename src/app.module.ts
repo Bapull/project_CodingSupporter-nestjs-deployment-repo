@@ -23,7 +23,8 @@ import { EmailService } from './email/email.service';
 import { EmailModule } from './email/email.module';
 import { NotificationModule } from './notification/notification.module';
 import { Notification } from './notification/entities/notification.entity';
-
+import * as winston from 'winston'
+import { WinstonModule } from 'nest-winston';
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -54,6 +55,32 @@ import { Notification } from './notification/entities/notification.entity';
     MessageModule,
     EmailModule,
     NotificationModule,
+    WinstonModule.forRootAsync({
+      inject:[ConfigService],
+      useFactory:(config:ConfigService)=>({
+        transports:[
+          new winston.transports.Console({
+            level: config.get('NODE_ENV') === 'development' ? 'silly' : 'info',
+            format: winston.format.combine(
+              winston.format.colorize(),
+              winston.format.timestamp(),
+              winston.format.printf(({ timestamp, level, message })=>{
+                return `${timestamp} [${level}]: ${message}`;
+              })
+            )
+          }),
+          new winston.transports.File({
+            filename: 'CodingSupporter.log',
+            format: winston.format.combine(
+              winston.format.timestamp(),
+              winston.format.printf(({ timestamp, level, message }) => {
+                return `${timestamp} [${level}]: ${message}`;
+            })
+          )
+          })
+        ]
+      })
+    })
   ],
   controllers: [AppController],
   providers: [AppService, S3Service, EmailService],

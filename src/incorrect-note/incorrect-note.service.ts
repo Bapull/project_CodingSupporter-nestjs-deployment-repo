@@ -1,4 +1,4 @@
-import { ForbiddenException, HttpException, HttpStatus, Injectable, NotFoundException } from '@nestjs/common';
+import { ForbiddenException, HttpException, HttpStatus, Inject, Injectable, LoggerService, NotFoundException } from '@nestjs/common';
 import { CreateIncorrectNoteDto } from './dto/create-incorrect-note.dto';
 import { UpdateIncorrectNoteDto } from './dto/update-incorrect-note.dto';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -6,13 +6,15 @@ import { IncorrectNote } from './entities/incorrect-note.entity';
 import { DataSource, Repository } from 'typeorm';
 import { S3Service } from 'src/s3/s3.service';
 import { SaveIncorrectNoteDto } from './dto/save-incorrect-note.dto';
+import { WINSTON_MODULE_NEST_PROVIDER } from 'nest-winston';
 
 
 @Injectable()
 export class IncorrectNoteService {
   constructor(
     private readonly dataSource:DataSource,
-    private readonly s3Service: S3Service
+    private readonly s3Service: S3Service,
+    @Inject(WINSTON_MODULE_NEST_PROVIDER) private readonly logger:LoggerService
   ) {}
 
   async saveNote(dto: SaveIncorrectNoteDto, userId: number) {
@@ -32,6 +34,7 @@ export class IncorrectNoteService {
       await queryRunner.commitTransaction()
     }catch(e){
       await queryRunner.rollbackTransaction()
+      this.logger.error('error: ', JSON.stringify(e))
       throw e
     }finally{
       await queryRunner.release()

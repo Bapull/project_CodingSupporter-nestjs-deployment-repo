@@ -1,12 +1,14 @@
-import { Inject, Injectable } from "@nestjs/common";
+import { Inject, Injectable, LoggerService } from "@nestjs/common";
 import { PassportSerializer } from "@nestjs/passport";
 import { AuthService } from "./auth.service";
 import { User } from "src/user/entities/user.entity";
+import { WINSTON_MODULE_NEST_PROVIDER } from "nest-winston";
 
 @Injectable()
 export class SessionSerializer extends PassportSerializer {
   constructor(
-    @Inject(AuthService) private readonly authService: AuthService
+    @Inject(AuthService) private readonly authService: AuthService,
+    @Inject(WINSTON_MODULE_NEST_PROVIDER) private readonly logger:LoggerService
   ) {
     super()
   }
@@ -20,6 +22,7 @@ export class SessionSerializer extends PassportSerializer {
       const user = await this.authService.findUserById(userId)
       done(null, user)
     } catch (error) {
+      this.logger.error('error: ',JSON.stringify(error), error.stack)
       done(error, null)
     }
   }

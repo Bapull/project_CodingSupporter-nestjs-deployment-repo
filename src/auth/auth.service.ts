@@ -1,8 +1,9 @@
-import { Injectable } from '@nestjs/common';
+import { BadGatewayException, Inject, Injectable, LoggerService } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { UserService } from 'src/user/user.service';
 import { SessionData, UserDetails } from 'src/common/types';
 import { createClient } from "redis";
+import { WINSTON_MODULE_NEST_PROVIDER } from 'nest-winston';
 
 @Injectable()
 export class AuthService {
@@ -10,6 +11,7 @@ export class AuthService {
   constructor(
     private readonly userService: UserService,
     private readonly configService: ConfigService,
+    @Inject(WINSTON_MODULE_NEST_PROVIDER) private readonly logger:LoggerService
   ){
     this.redisClient = createClient({
       url: configService.get<string>('REDIS_URL')
@@ -58,7 +60,7 @@ export class AuthService {
 
       return user.id
     }catch(error){
-      console.error(error)
+      this.logger.error('error:'+JSON.stringify(error), error.stack)
       return null
     }
   }
@@ -66,8 +68,8 @@ export class AuthService {
   async deleteSession(sessionId:string){
     try{
       await this.redisClient.del(`sess:${sessionId}`)
-    }catch{
-      console.error('세션 삭제 실패')
+    }catch(e){
+      this.logger.error('세션 삭제 실패:'+JSON.stringify(e), e.stack)
     }
     
   }
@@ -91,7 +93,7 @@ export class AuthService {
       }while(cursor !== 0 )
       return await this.userService.isMentoAndIsProper(sessions,language)
     }catch(error){
-      console.error(error)
+      this.logger.error('error: '+JSON.stringify(error), error.stack)
       return null
     }
   }

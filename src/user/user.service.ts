@@ -1,15 +1,17 @@
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable, LoggerService } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserNameDto } from './dto/update-user-name.dto';
 import { UpdateUserLanguageDto } from './dto/update-user-language.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { User } from './entities/user.entity';
 import { DataSource, Repository } from 'typeorm';
+import { WINSTON_MODULE_NEST_PROVIDER } from 'nest-winston';
 
 @Injectable()
 export class UserService {
   constructor(
-    private readonly dataSource:DataSource
+    private readonly dataSource:DataSource,
+    @Inject(WINSTON_MODULE_NEST_PROVIDER) private readonly logger:LoggerService
   ){}
 
   async createNewUser(createUserDto: CreateUserDto) {
@@ -22,7 +24,7 @@ export class UserService {
       return user
     }catch(e){
       await queryRunner.rollbackTransaction()
-      console.error(e)
+      this.logger.error('error: ',JSON.stringify(e))
       throw e
     }finally{
       await queryRunner.release()
@@ -52,7 +54,7 @@ export class UserService {
 	    await queryRunner.commitTransaction()
     }catch(e){
       await queryRunner.rollbackTransaction()
-      console.error(e)
+      this.logger.error('error: ',JSON.stringify(e))
       throw e
     }finally{
       await queryRunner.release()
@@ -73,7 +75,7 @@ export class UserService {
 	    await queryRunner.commitTransaction()
     }catch(e){
       await queryRunner.rollbackTransaction()
-      console.error(e)
+      this.logger.error('error: ',JSON.stringify(e))
       throw e
     }finally{
       await queryRunner.release()
@@ -98,7 +100,7 @@ export class UserService {
 	    await queryRunner.commitTransaction()
     }catch(e){
       await queryRunner.rollbackTransaction()
-      console.error(e)
+      this.logger.error('error: ',JSON.stringify(e))
       throw e
     }finally{
       await queryRunner.release()
@@ -106,59 +108,63 @@ export class UserService {
   }
 
   async isMentoAndIsProper(ids:number[],language:string){
-    const getRandomItems = (arr, count) => {
-      const shuffled = [...arr];
-      for (let i = shuffled.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+    try{
+      const getRandomItems = (arr, count) => {
+        const shuffled = [...arr];
+        for (let i = shuffled.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+        }
+        return shuffled.slice(0, count);
       }
-      return shuffled.slice(0, count);
-    }
-
-    let response = []
-    if(ids.length > 0){
-      const user = await this.dataSource.createQueryBuilder()
-      .select('user.id')
-      .addSelect('user.name')
-      .addSelect('user.useLanguage')
-      .addSelect('user.position')
-      .addSelect('user.profilePicture')
-      .from(User,'user')
-      .where('user.position = 1')
-      .andWhere('user.id IN (:...ids)',{ids})
-      .andWhere('user.useLanguage LIKE :language', {language: `%"${language}"%`})
-      .getMany()
+  
+      let response = []
+      if(ids.length > 0){
+        const user = await this.dataSource.createQueryBuilder()
+        .select('user.id')
+        .addSelect('user.name')
+        .addSelect('user.useLanguage')
+        .addSelect('user.position')
+        .addSelect('user.profilePicture')
+        .from(User,'user')
+        .where('user.position = 1')
+        .andWhere('user.id IN (:...ids)',{ids})
+        .andWhere('user.useLanguage LIKE :language', {language: `%"${language}"%`})
+        .getMany()
+        
+        const appendPropertyUser = user.map((item)=>{
+          return {...item, isActive:true}
+        })
+        response = getRandomItems(appendPropertyUser, 5)
+      }
       
-      const appendPropertyUser = user.map((item)=>{
-        return {...item, isActive:true}
-      })
-      response = getRandomItems(appendPropertyUser, 5)
-    }
-    
-    if(response.length < 5){
-      const notActiveUser = await this.dataSource.createQueryBuilder()
-      .select('user.id')
-      .addSelect('user.name')
-      .addSelect('user.useLanguage')
-      .addSelect('user.position')
-      .addSelect('user.profilePicture')
-      .from(User,'user')
-      .where('user.useLanguage LIKE :language',{language: `%"${language}"%`})
-      .andWhere('user.position = 1')
-      .getMany()
+      if(response.length < 5){
+        const notActiveUser = await this.dataSource.createQueryBuilder()
+        .select('user.id')
+        .addSelect('user.name')
+        .addSelect('user.useLanguage')
+        .addSelect('user.position')
+        .addSelect('user.profilePicture')
+        .from(User,'user')
+        .where('user.useLanguage LIKE :language',{language: `%"${language}"%`})
+        .andWhere('user.position = 1')
+        .getMany()
+        
+        const setNotActiveUser = notActiveUser.filter((item)=>{
+          return !ids.includes(item.id)
+        })
+  
+        const shuffledNotActiveUser = getRandomItems(setNotActiveUser, 5 - response.length)
+        const appendPropertyNotActive = shuffledNotActiveUser.map((item)=>{
+          return {...item, isActive:false}
+        })
+        response.push(...appendPropertyNotActive)
+      }
       
-      const setNotActiveUser = notActiveUser.filter((item)=>{
-        return !ids.includes(item.id)
-      })
-
-      const shuffledNotActiveUser = getRandomItems(setNotActiveUser, 5 - response.length)
-      const appendPropertyNotActive = shuffledNotActiveUser.map((item)=>{
-        return {...item, isActive:false}
-      })
-      response.push(...appendPropertyNotActive)
+      
+      return response
+    }catch(e){
+      this.logger.error('error: ',JSON.stringify(e))
     }
-    
-    
-    return response
   }
 }
