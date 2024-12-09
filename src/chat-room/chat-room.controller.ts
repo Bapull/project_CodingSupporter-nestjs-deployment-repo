@@ -34,7 +34,7 @@ export class ChatRoomController {
   @Post('chat-request')
   async create(@Req() request, @Query('mento-id') mentoId:number, @Query('note-id') noteId:string) {
     const noteName = await this.incorrectNoteService.getFileNameById(+noteId)
-    await this.chatRoomService.create({receiver: mentoId, sender:request.user.id, noteId:+noteId, noteName:noteName}, +noteId);
+    await this.chatRoomService.create({receiver: mentoId, sender:request.user.id}, +noteId);
     return {
       message: '채팅방을 생성했습니다.'
     }
@@ -106,7 +106,7 @@ export class ChatRoomController {
   async findOne(@Req() request, @Param('id') id:string){
     return {
       message:'채팅방을 성공적으로 불러왔습니다.',
-      data: await this.chatRoomService.findOneForUser(+id, request.user.id)
+      data: await this.chatRoomService.findOneWithNoteInfo(+id, request.user.id)
     }
   }
 }

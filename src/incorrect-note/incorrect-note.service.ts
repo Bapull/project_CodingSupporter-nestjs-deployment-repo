@@ -21,13 +21,13 @@ export class IncorrectNoteService {
     await queryRunner.connect()
     await queryRunner.startTransaction()
     try{
-      const noteName = dto.mdFile.match(/-------------------\n(.*)\n/)[1].trim();
-      const mdFile = await this.s3Service.uploadMdFile(dto.mdFile,noteName);
+      const noteName = (`${dto.id}`+dto.mdFile.match(/-------------------\n(.*)\n/)[1].trim()+'.md').replace('..','.');
+      await this.s3Service.uploadMdFile(dto.mdFile,noteName);
       const newNote = new IncorrectNote()
       newNote.language = dto.language,
       newNote.errorType = parseInt(dto.errorType)
       newNote.studentId = userId,
-      newNote.noteName = `${dto.id}` + mdFile.Key.replace('incorrect-notes/','').replace('..','.') 
+      newNote.noteName = noteName
       savedNote = await queryRunner.manager.save(IncorrectNote, newNote)
       await queryRunner.commitTransaction()
     }catch(e){

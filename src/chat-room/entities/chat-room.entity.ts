@@ -11,9 +11,4 @@ export class ChatRoom {
 
     @Column()
     receiver:number;
-    @Column()
-    noteName:string;
-    @Column()
-    noteId:number;
-    
 }

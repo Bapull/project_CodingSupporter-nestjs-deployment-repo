@@ -1,4 +1,5 @@
-import { Column, Entity, PrimaryGeneratedColumn } from "typeorm";
+import { ChatRoom } from "../../chat-room/entities/chat-room.entity";
+import { Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
 
 
 @Entity()
@@ -9,8 +10,12 @@ export class Message {
   @Column()
   sender: string;
 
+  @ManyToOne(() => ChatRoom)
+  @JoinColumn({ name: 'room' })
+  chatRoom: ChatRoom;
+
   @Column()
-  room: string;
+  room: number;
 
   @Column()
   message:string;

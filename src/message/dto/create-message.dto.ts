@@ -1,7 +1,7 @@
 export class CreateMessageDto {
   sender: string;
 
-  room: string;
+  room: number;
 
   message:string;
 }

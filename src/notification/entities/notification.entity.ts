@@ -1,5 +1,6 @@
 import { DateDimensionField } from "aws-sdk/clients/quicksight";
-import { Column, CreateDateColumn, Entity, PrimaryGeneratedColumn } from "typeorm";
+import { User } from "../../user/entities/user.entity";
+import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
 
 @Entity()
 export class Notification {
@@ -14,6 +15,10 @@ export class Notification {
 
     @CreateDateColumn({ type: 'timestamp' })
     timestamp:Date
+
+    @ManyToOne(() => User)
+    @JoinColumn({ name: 'userId' })
+    user: User;
 
     @Column()
     userId:number

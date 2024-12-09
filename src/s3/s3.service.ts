@@ -18,7 +18,7 @@ export class S3Service {
 
   async uploadMdFile(content: string, fileName?: string): Promise<AWS.S3.ManagedUpload.SendData> {
     
-    const key = fileName ? `incorrect-notes/${fileName}.md` : `incorrect-notes/no-name.md`;
+    const key = fileName ? `incorrect-notes/${fileName}` : `incorrect-notes/no-name.md`;
 
     const params: AWS.S3.PutObjectRequest = {
       Bucket: this.bucketName,
@@ -26,7 +26,7 @@ export class S3Service {
       Body: content,     // 파일 내용 (문자열)
       ContentType: 'text/plain',  // 파일 MIME 타입 설정
     };
-
+    
     return await this.s3.upload(params).promise();
   }
 

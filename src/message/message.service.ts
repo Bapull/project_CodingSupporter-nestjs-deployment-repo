@@ -25,7 +25,7 @@ export class MessageService {
   }
 
   async findAll(room:string) {
-    return await this.dataSource.manager.findBy(Message, {room:room})
+    return await this.dataSource.manager.findBy(Message, {room:+room})
   }
 
 }

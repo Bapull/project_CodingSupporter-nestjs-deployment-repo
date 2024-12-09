@@ -52,7 +52,7 @@ export class ChatGateway {
     
     await this.messageService.create({
       message: `${message.sender}가 접속했습니다.`,
-      room: message.room,
+      room: +message.room,
       sender: 'server',
     })
 
@@ -75,7 +75,7 @@ export class ChatGateway {
     
     await this.messageService.create({
       message: `${message.sender}가 나갔습니다.`,
-      room: message.room,
+      room: +message.room,
       sender: 'server',
     })
     this.server.to(message.room).emit('message', {
@@ -92,7 +92,7 @@ export class ChatGateway {
   ): Promise<void> {
     
     if(client.rooms.has(message.room)) {
-      await this.messageService.create(message)
+      await this.messageService.create({...message, room:Number(message.room)})
 
       const roomSockets = await this.server.in(message.room).fetchSockets()
       if(roomSockets.length === 1){
