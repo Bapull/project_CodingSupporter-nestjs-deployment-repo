@@ -1,8 +1,9 @@
 import { StringOutputParser } from '@langchain/core/output_parsers';
 import { PromptTemplate } from '@langchain/core/prompts';
 import { ChatOpenAI } from '@langchain/openai';
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable, LoggerService } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import { WINSTON_MODULE_NEST_PROVIDER } from 'nest-winston';
 
 @Injectable()
 export class LangChainService {
@@ -12,9 +13,13 @@ export class LangChainService {
   private readonly codePrompt: PromptTemplate;
   private readonly mdPrompt: PromptTemplate;
 
-  constructor(private configService: ConfigService){
+  constructor(
+    private configService: ConfigService,
+    @Inject(WINSTON_MODULE_NEST_PROVIDER) private readonly logger:LoggerService
+  ){
     this.apiKey = this.configService.get<string>('OPENAI_API_KEY')
     if(!this.apiKey){
+      this.logger.fatal('fatal: OPEN_API_KEY is not set')
       throw new Error('OPEN_API_KEY is not set')
     }
     this.model = new ChatOpenAI({
@@ -61,16 +66,19 @@ export class LangChainService {
     )
   }
   async callModel(code:string, question?:string) {
-   
-    const languageResult = await this.parser.invoke( await this.model.invoke(
-      await this.codePrompt.format({code:code})
-    ))
-    const mdResult = await this.parser.invoke( await this.model.invoke(
-      await this.mdPrompt.format({response:languageResult})
-    ))
-    return {
-      json: JSON.stringify(languageResult),
-      mdFile:  mdResult
-    }
+    try{
+      const languageResult = await this.parser.invoke( await this.model.invoke(
+        await this.codePrompt.format({code:code})
+      ))
+      const mdResult = await this.parser.invoke( await this.model.invoke(
+        await this.mdPrompt.format({response:languageResult})
+      ))
+      return {
+        json: JSON.stringify(languageResult),
+        mdFile:  mdResult
+      }
+    }catch(e){
+      this.logger.error('error: ',JSON.stringify(e))
+    } 
   }
 }

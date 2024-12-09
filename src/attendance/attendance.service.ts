@@ -4,7 +4,9 @@ import { DataSource } from 'typeorm';
 
 @Injectable()
 export class AttendanceService {
-  constructor(private readonly dataSource:DataSource){}
+  constructor(
+    private readonly dataSource:DataSource
+  ){}
   
   async create(userId: number) {
 

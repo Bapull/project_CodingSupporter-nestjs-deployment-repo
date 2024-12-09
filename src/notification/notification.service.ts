@@ -1,12 +1,14 @@
-import { ForbiddenException, Injectable } from '@nestjs/common';
+import { ForbiddenException, Inject, Injectable, LoggerService } from '@nestjs/common';
 import { CreateNotificationDto } from './dto/create-notification.dto';
 import { DataSource } from 'typeorm';
 import { Notification } from './entities/notification.entity';
+import { WINSTON_MODULE_NEST_PROVIDER } from 'nest-winston';
 
 @Injectable()
 export class NotificationService {
   constructor(
-    private readonly dataSource:DataSource
+    private readonly dataSource:DataSource,
+    @Inject(WINSTON_MODULE_NEST_PROVIDER) private readonly logger:LoggerService
   ){}
   async create(createNotificationDto: CreateNotificationDto) {
     const queryRunner = await this.dataSource.createQueryRunner()
@@ -18,7 +20,7 @@ export class NotificationService {
       await queryRunner.commitTransaction()
     }catch(e){
       await queryRunner.rollbackTransaction()
-      console.error(e)
+      this.logger.error('error: ',JSON.stringify(e))
       throw e
     }finally{
       await queryRunner.release()
@@ -45,6 +47,7 @@ export class NotificationService {
       await queryRunner.commitTransaction()
     }catch(e){
       await queryRunner.rollbackTransaction()
+      this.logger.error('error: ',JSON.stringify(e))
       throw e
     }finally{
       await queryRunner.release()
