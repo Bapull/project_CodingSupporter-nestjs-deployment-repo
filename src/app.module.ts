@@ -39,7 +39,7 @@ import { Notification } from './notification/entities/notification.entity';
         password: config.get<string>('DB_PASSWORD'),
         database: config.get<string>('DB_DATABASE'),
         entities: [IncorrectNote, User, Attendance, ChatRoom, Message, Notification],
-        synchronize: true,
+        synchronize: false,
       }),
     }),
     IncorrectNoteModule,

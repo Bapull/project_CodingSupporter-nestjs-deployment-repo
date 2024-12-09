@@ -3,14 +3,17 @@ import { GoogleAuthGuard } from './google/google-auth.guard';
 import { Request, Response } from 'express';
 import { ApiExcludeEndpoint, ApiOperation, ApiQuery, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { AuthService } from './auth.service';
-import { String } from 'aws-sdk/clients/apigateway';
 import { AuthGuard } from './auth.guard';
 import { ApiUnauthorizedResponses } from 'src/common/api-response.decorator';
+import { ConfigService } from '@nestjs/config';
 
 @ApiTags('auth')
 @Controller('auth')
 export class AuthController {
-  constructor(private readonly authService:AuthService){}
+  FRONTEND_URL;
+  constructor(private readonly authService:AuthService,
+    private readonly configService:ConfigService,
+  ){this.FRONTEND_URL = configService.get<string>('FRONTEND_URL')}
 
   @ApiOperation({ summary: '구글 로그인 페이지로 이동' })
   @Get('google/login')
@@ -23,7 +26,7 @@ export class AuthController {
   @Get('google/redirect')
   @UseGuards(GoogleAuthGuard)
   handleRedirect(@Req() request: Request, @Res() response) {
-    response.redirect('https://localhost:5173/user')
+    response.redirect(`${this.FRONTEND_URL}/user`)
   }
 
   @ApiOperation({ summary: '로그아웃' })

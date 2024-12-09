@@ -17,8 +17,9 @@ export class UserService {
     await queryRunner.connect()
     await queryRunner.startTransaction()
     try{
-      await queryRunner.manager.save(User,createUserDto)
+      const user = await queryRunner.manager.save(User,createUserDto)
 	    await queryRunner.commitTransaction()
+      return user
     }catch(e){
       await queryRunner.rollbackTransaction()
       console.error(e)

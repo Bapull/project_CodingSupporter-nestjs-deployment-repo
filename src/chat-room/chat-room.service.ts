@@ -49,7 +49,7 @@ export class ChatRoomService {
     const receivce = await this.dataSource.createQueryBuilder()
     .from(ChatRoom,'chatroom')
     .innerJoin(IncorrectNote, 'note', 'note.chatName = chatroom.id')
-    .select('chatroom.id AS id, chatroom.receiver AS receiver, chatroom.sender AS sender, note.noteName as noteName')
+    .select('chatroom.id AS id, chatroom.receiver AS receiver, chatroom.sender AS sender, note.noteName as noteName, note.id as noteId')
     .where(`receiver=${userId}`)
     .orWhere(`sender=${userId}`)
     .getRawMany()
@@ -63,10 +63,16 @@ export class ChatRoomService {
     
     return room
   }
-  async findOneForUser(id: number, userId:number) {
-
-    const room =  await this.dataSource.manager.findOneBy(ChatRoom,{id:id})
-    if(room.receiver !== userId || room.sender !== userId){
+  async findOneWithNoteInfo(id: number, userId:number) {
+    const room = await this.dataSource.createQueryBuilder()
+    .from(ChatRoom,'chatroom')
+    .innerJoin(IncorrectNote,'note','note.chatName = chatroom.id')
+    .select('chatroom.id AS id, chatroom.receiver AS receiver, chatroom.sender AS sender, note.noteName as noteName, note.id as noteId')
+    .where(`chatroom.id = ${id}`)
+    .getRawOne()
+    console.log(room.receiver)
+    console.log(userId)
+    if(!(room.receiver === userId || room.sender === userId)){
       throw new ForbiddenException('권한이 없습니다.')
     }
     return room
