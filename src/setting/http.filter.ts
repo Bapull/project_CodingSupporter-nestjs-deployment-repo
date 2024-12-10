@@ -20,7 +20,7 @@ export class HttpFilter implements ExceptionFilter {
     
     const log = {
         timestamp: new Date(),
-        message: typeof response === 'object' ? `url:${req.url}, ${response['message']}` : response
+        message: typeof response === 'object' ? `url:${req.url}, ${response['message']}` : `url:${req.url}, ${response}`
     };
     
     this.logger.error(log)
