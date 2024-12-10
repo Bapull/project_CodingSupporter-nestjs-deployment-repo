@@ -29,7 +29,6 @@ export class AttendanceService {
       await queryRunner.commitTransaction()
     }catch(e){
       await queryRunner.rollbackTransaction()
-      throw e
     }finally{
       await queryRunner.release()
     }

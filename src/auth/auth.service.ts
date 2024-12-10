@@ -60,7 +60,7 @@ export class AuthService {
 
       return user.id
     }catch(error){
-      this.logger.error('error:'+JSON.stringify(error), error.stack)
+      this.logger.error('error:'+JSON.stringify(error))
       return null
     }
   }
@@ -69,7 +69,7 @@ export class AuthService {
     try{
       await this.redisClient.del(`sess:${sessionId}`)
     }catch(e){
-      this.logger.error('세션 삭제 실패:'+JSON.stringify(e), e.stack)
+      this.logger.error('세션 삭제 실패:'+JSON.stringify(e))
     }
     
   }
@@ -93,7 +93,7 @@ export class AuthService {
       }while(cursor !== 0 )
       return await this.userService.isMentoAndIsProper(sessions,language)
     }catch(error){
-      this.logger.error('error: '+JSON.stringify(error), error.stack)
+      this.logger.error('error: '+JSON.stringify(error))
       return null
     }
   }

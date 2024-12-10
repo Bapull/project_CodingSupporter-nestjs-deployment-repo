@@ -22,7 +22,7 @@ export class SessionSerializer extends PassportSerializer {
       const user = await this.authService.findUserById(userId)
       done(null, user)
     } catch (error) {
-      this.logger.error('error: ',JSON.stringify(error), error.stack)
+      this.logger.error('error: ',JSON.stringify(error))
       done(error, null)
     }
   }

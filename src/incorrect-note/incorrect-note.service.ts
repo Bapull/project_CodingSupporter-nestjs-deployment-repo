@@ -1,4 +1,4 @@
-import { ForbiddenException, HttpException, HttpStatus, Inject, Injectable, LoggerService, NotFoundException } from '@nestjs/common';
+import { BadRequestException, ForbiddenException, HttpException, HttpStatus, Inject, Injectable, LoggerService, NotFoundException } from '@nestjs/common';
 import { CreateIncorrectNoteDto } from './dto/create-incorrect-note.dto';
 import { UpdateIncorrectNoteDto } from './dto/update-incorrect-note.dto';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -34,8 +34,7 @@ export class IncorrectNoteService {
       await queryRunner.commitTransaction()
     }catch(e){
       await queryRunner.rollbackTransaction()
-      this.logger.error('error: ', JSON.stringify(e))
-      throw e
+      throw new BadRequestException(`${e.sqlMessage}`)
     }finally{
       await queryRunner.release()
     }
@@ -134,8 +133,7 @@ export class IncorrectNoteService {
 	    await queryRunner.commitTransaction()
     }catch(e){
       await queryRunner.rollbackTransaction()
-      console.error(e)
-      throw e
+      throw new BadRequestException(`${e.sqlMessage}`)
     }finally{
       await queryRunner.release()
     }

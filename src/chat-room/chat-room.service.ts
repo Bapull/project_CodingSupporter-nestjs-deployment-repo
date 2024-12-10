@@ -41,8 +41,7 @@ export class ChatRoomService {
       await queryRunner.commitTransaction()
     }catch(e){
       await queryRunner.rollbackTransaction()
-      this.logger.error('error: ', JSON.stringify(e))
-      throw e
+      throw new BadRequestException(`${e.sqlMessage}`)
     }finally{
       await queryRunner.release()
     }
