@@ -1,4 +1,4 @@
-import { Inject, Injectable, LoggerService } from '@nestjs/common';
+import { BadRequestException, Inject, Injectable, LoggerService } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserNameDto } from './dto/update-user-name.dto';
 import { UpdateUserLanguageDto } from './dto/update-user-language.dto';
@@ -24,8 +24,8 @@ export class UserService {
       return user
     }catch(e){
       await queryRunner.rollbackTransaction()
-      this.logger.error('error: ',JSON.stringify(e))
-      throw e
+      
+      throw new BadRequestException(`${e.sqlMessage}`)
     }finally{
       await queryRunner.release()
     }
@@ -50,12 +50,12 @@ export class UserService {
     await queryRunner.connect()
     await queryRunner.startTransaction()
     try{
+     
       await queryRunner.manager.save(User,user)
 	    await queryRunner.commitTransaction()
     }catch(e){
       await queryRunner.rollbackTransaction()
-      this.logger.error('error: ',JSON.stringify(e))
-      throw e
+      throw new BadRequestException(`${e.sqlMessage}`)
     }finally{
       await queryRunner.release()
     }
@@ -75,8 +75,8 @@ export class UserService {
 	    await queryRunner.commitTransaction()
     }catch(e){
       await queryRunner.rollbackTransaction()
-      this.logger.error('error: ',JSON.stringify(e))
-      throw e
+      
+      throw new BadRequestException(`${e.sqlMessage}`)
     }finally{
       await queryRunner.release()
     }
@@ -100,8 +100,8 @@ export class UserService {
 	    await queryRunner.commitTransaction()
     }catch(e){
       await queryRunner.rollbackTransaction()
-      this.logger.error('error: ',JSON.stringify(e))
-      throw e
+      
+      throw new BadRequestException(`${e.sqlMessage}`)
     }finally{
       await queryRunner.release()
     }
@@ -164,7 +164,11 @@ export class UserService {
       
       return response
     }catch(e){
-      this.logger.error('error: ',JSON.stringify(e))
+      if (e instanceof Error) {
+        this.logger.error('error :', e.message);
+      } else {
+        this.logger.error('Unexpected error from user.service isMentoAndIsProper:', e);
+      }
     }
   }
 }

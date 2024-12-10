@@ -1,4 +1,4 @@
-import { ForbiddenException, Inject, Injectable, LoggerService } from '@nestjs/common';
+import { BadRequestException, ForbiddenException, Inject, Injectable, LoggerService } from '@nestjs/common';
 import { CreateNotificationDto } from './dto/create-notification.dto';
 import { DataSource } from 'typeorm';
 import { Notification } from './entities/notification.entity';
@@ -20,8 +20,8 @@ export class NotificationService {
       await queryRunner.commitTransaction()
     }catch(e){
       await queryRunner.rollbackTransaction()
-      this.logger.error('error: ',JSON.stringify(e))
-      throw e
+      
+      throw new BadRequestException(`${e.sqlMessage}`)
     }finally{
       await queryRunner.release()
     }
@@ -47,8 +47,8 @@ export class NotificationService {
       await queryRunner.commitTransaction()
     }catch(e){
       await queryRunner.rollbackTransaction()
-      this.logger.error('error: ',JSON.stringify(e))
-      throw e
+      
+      throw new BadRequestException(`${e.sqlMessage}`)
     }finally{
       await queryRunner.release()
     }

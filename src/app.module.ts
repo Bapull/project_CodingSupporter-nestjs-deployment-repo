@@ -25,6 +25,8 @@ import { NotificationModule } from './notification/notification.module';
 import { Notification } from './notification/entities/notification.entity';
 import * as winston from 'winston'
 import { WinstonModule } from 'nest-winston';
+import { APP_FILTER } from '@nestjs/core';
+import { HttpFilter } from './setting/http.filter';
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -71,6 +73,7 @@ import { WinstonModule } from 'nest-winston';
           }),
           new winston.transports.File({
             filename: 'CodingSupporter.log',
+            level: 'warn',
             format: winston.format.combine(
               winston.format.timestamp(),
               winston.format.printf(({ timestamp, level, message }) => {
@@ -83,6 +86,11 @@ import { WinstonModule } from 'nest-winston';
     })
   ],
   controllers: [AppController],
-  providers: [AppService, S3Service, EmailService],
+  providers: [AppService, S3Service, EmailService,
+    {
+      provide: APP_FILTER,
+      useClass: HttpFilter
+    }
+  ],
 })
 export class AppModule {}

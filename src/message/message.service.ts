@@ -1,4 +1,4 @@
-import { Inject, Injectable, LoggerService } from '@nestjs/common';
+import { BadRequestException, Inject, Injectable, LoggerService } from '@nestjs/common';
 import { CreateMessageDto } from './dto/create-message.dto';
 import { Message } from './entities/message.entity'
 import { DataSource } from 'typeorm';
@@ -19,8 +19,7 @@ export class MessageService {
 	    await queryRunner.commitTransaction()
     }catch(e){
       await queryRunner.rollbackTransaction()
-      this.logger.error('error: ',JSON.stringify(e))
-      throw e
+      throw new BadRequestException(`${e.sqlMessage}`)
     }finally{
       await queryRunner.release()
     }

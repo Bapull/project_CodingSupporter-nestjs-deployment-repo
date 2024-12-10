@@ -19,7 +19,6 @@ export class LangChainService {
   ){
     this.apiKey = this.configService.get<string>('OPENAI_API_KEY')
     if(!this.apiKey){
-      this.logger.fatal('fatal: OPEN_API_KEY is not set')
       throw new Error('OPEN_API_KEY is not set')
     }
     this.model = new ChatOpenAI({
