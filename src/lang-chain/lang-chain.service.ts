@@ -27,7 +27,7 @@ export class LangChainService {
     });
     
     this.parser = new StringOutputParser();
-
+    // 코드 분석 후 응답 생성 
     this.codePrompt = PromptTemplate.fromTemplate(
       `다음 코드를 읽고 밑의 질문에 하나씩 답해주세요
       1. 해당 코드는 어떤 언어로 작성되었습니까? 만약 C언어로 작성되어있다면, 그냥 C라고만 답하고, 다른 단어는 말하지 마세요. 알파벳으로만 작성해주세요. 모든 글자는 대문자로 작성해주세요.
@@ -39,6 +39,7 @@ export class LangChainService {
       <코드>
       {code}`
     );
+    // 생성된 응답을 문서화 
     this.mdPrompt = PromptTemplate.fromTemplate(
       `다음 글을 마크다운 형식에 맞춰서 문서화해야합니다. 문장들은 1. 2. 3. 4. 5. 이렇게 번호가 붙어있습니다.
       <글>

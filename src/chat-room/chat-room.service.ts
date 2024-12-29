@@ -20,6 +20,7 @@ export class ChatRoomService {
     await queryRunner.connect()
     await queryRunner.startTransaction()
     try{
+      // 노트 검색색
       const note = await this.dataSource.manager.findOneBy(IncorrectNote,{id:noteId})
       if(note.studentId != dto.sender){
         throw new ForbiddenException('권한이 없습니다.')
@@ -27,10 +28,11 @@ export class ChatRoomService {
       if(note.mentoId){
         throw new BadRequestException('이미 멘토가 설정된 오답노트 입니다.')
       }
+      // 채팅방 생성성
       const chatRoom = await queryRunner.manager.save(ChatRoom, dto)
-      
+      // 오답노트의 mento 설정정
       await queryRunner.manager.update(IncorrectNote,{id:noteId},{mentoId:dto.receiver, chatName:chatRoom.id})
-
+      // 알림 생성성
       const notification = await queryRunner.manager.create(Notification)
       notification.message = '새로운 채팅방이 생성되었습니다.'
       notification.type = 'newRoom'
@@ -46,9 +48,9 @@ export class ChatRoomService {
       await queryRunner.release()
     }
   }
-
+  // 유저가 참여중인 모든 채팅방 확인
   async findAll(userId: string) {
-    const receivce = await this.dataSource.createQueryBuilder()
+    const receive = await this.dataSource.createQueryBuilder()
     .from(ChatRoom,'chatroom')
     .innerJoin(IncorrectNote, 'note', 'note.chatName = chatroom.id')
     .select('chatroom.id AS id, chatroom.receiver AS receiver, chatroom.sender AS sender, note.noteName as noteName, note.id as noteId')
@@ -56,7 +58,7 @@ export class ChatRoomService {
     .orWhere(`sender=${userId}`)
     .getRawMany()
 
-    return receivce
+    return receive
   }
 
   async findOne(id: number) {
@@ -65,6 +67,7 @@ export class ChatRoomService {
     
     return room
   }
+  // 채팅방 하나를 찾고, 이 채팅방에 공유중인 오답노트도 join으로 찾음
   async findOneWithNoteInfo(id: number, userId:number) {
     const room = await this.dataSource.createQueryBuilder()
     .from(ChatRoom,'chatroom')

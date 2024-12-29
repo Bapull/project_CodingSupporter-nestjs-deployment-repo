@@ -16,12 +16,14 @@ export class AuthService {
     private readonly configService: ConfigService,
     @Inject(WINSTON_MODULE_NEST_PROVIDER) private readonly logger:LoggerService
   ){
+    // redis 클라이언트 생성 및 연결
     this.redisClient = createClient({
       url: configService.get<string>('REDIS_URL')
     })
     this.redisClient.connect().catch(console.error)
   }
 
+  // 유저를 구글 아이디로 확인 후 없으면 생성해서 반환
   async validateUser(details: UserDetails){
     const user = await this.userService.findOneByGoogleId(details.googleId)
     if(user) return user;
@@ -44,6 +46,7 @@ export class AuthService {
     return user
   }
 
+  // session 아이디로 유저 찾기
   async findUserBySessionId(sessionId: string){
     try{
       const sessionData = await this.redisClient.get(`sess:${sessionId}`)
@@ -78,26 +81,30 @@ export class AuthService {
   }
 
   async findAllMento(language:string){
+    // 캐시에 저장된 멘토 정보 확인 후 있으면 반환
     const value = await this.cacheManager.get(`mento:${language}`);
     if(value){
       return value
     }
+    // 캐시에 저장된 멘토 정보가 없다면 멘토 검색
     try{
       let cursor = 0
       const sessions:number[] = [];
 
       do{
+        // 키가 sess: 로 시작하는 세션 정보 검색
         const reply = await this.redisClient.scan(cursor, {MATCH: 'sess:*',COUNT: 100})
         cursor = reply['cursor'];
         const keys:string[] = reply['keys'];
         const sessionDatas:number[] = await Promise.all(keys.map(async (key)=>{
           const sessionData = await this.redisClient.get(key)
-          console.log(sessionData)
+          // redis에서 찾은 세션 정보는 json 형식이므로 파싱
           const json:SessionData = JSON.parse(sessionData)
           return json.passport.user
         }))
         sessions.push(...sessionDatas)
       }while(cursor !== 0 )
+      // 찾은 유저가 멘토이면서 알맞은 언어정보를 가지고 있는지 확인
       return await this.userService.isMentoAndIsProper(sessions,language)
     }catch(error){
       this.logger.error('error: '+JSON.stringify(error))

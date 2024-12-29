@@ -31,7 +31,7 @@ export class ChatGateway {
     @ConnectedSocket() client: Socket,
     @MessageBody() message: Message
   ): Promise<void> {
-
+    // 유저가 들어오려고 하는방에 속해 있는지 확인
     const rooms:Room[] = await this.chatRoomService.findAll(client.data)
     let isFind:boolean = false
     const roomNumber:number = parseInt(message.room)
@@ -91,18 +91,18 @@ export class ChatGateway {
     @MessageBody() message: Message
   ): Promise<void> {
     
-    if(client.rooms.has(message.room)) {
+    if(client.rooms.has(message.room)) { // 유저가 채팅방에 접속중인지 확인
       await this.messageService.create({...message, room:Number(message.room)})
 
       const roomSockets = await this.server.in(message.room).fetchSockets()
-      if(roomSockets.length === 1){
+      if(roomSockets.length === 1){ // 유저가 혼자 접속중인지 확인, 만약 혼자라면 상대방에게 알림 생성
         const room = await this.chatRoomService.findOne(+message.room)
         const newNotification = new Notification()
         newNotification.message = message.message
         newNotification.userId = room.receiver == +message.senderId ? room.sender : room.receiver
         newNotification.type = 'newMessage'
         newNotification.link = `${this.FRONTEND_URL}/mentchat/${room.id}`
-        await this.notificationService.create(newNotification)
+        await this.notificationService.create(newNotification) // 새로운 notification 생성
       }
 
       this.server.to(message.room).emit('message', message);
