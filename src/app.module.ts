@@ -27,8 +27,13 @@ import * as winston from 'winston'
 import { WinstonModule } from 'nest-winston';
 import { APP_FILTER } from '@nestjs/core';
 import { HttpFilter } from './setting/http.filter';
+import { CacheModule } from '@nestjs/cache-manager';
 @Module({
   imports: [
+    CacheModule.register({
+      isGlobal: true,
+      ttl: 60000 // 60s
+    }),
     ConfigModule.forRoot({
       isGlobal: true
     }),

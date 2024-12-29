@@ -1,14 +1,17 @@
-import { BadGatewayException, Inject, Injectable, LoggerService } from '@nestjs/common';
+import { Inject, Injectable, LoggerService } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { UserService } from 'src/user/user.service';
 import { SessionData, UserDetails } from 'src/common/types';
 import { createClient } from "redis";
 import { WINSTON_MODULE_NEST_PROVIDER } from 'nest-winston';
+import { CACHE_MANAGER } from '@nestjs/cache-manager';
+import { Cache } from 'cache-manager';
 
 @Injectable()
 export class AuthService {
   private redisClient;
   constructor(
+    @Inject(CACHE_MANAGER) private cacheManager: Cache,
     private readonly userService: UserService,
     private readonly configService: ConfigService,
     @Inject(WINSTON_MODULE_NEST_PROVIDER) private readonly logger:LoggerService
@@ -75,6 +78,10 @@ export class AuthService {
   }
 
   async findAllMento(language:string){
+    const value = await this.cacheManager.get(`mento:${language}`);
+    if(value){
+      return value
+    }
     try{
       let cursor = 0
       const sessions:number[] = [];

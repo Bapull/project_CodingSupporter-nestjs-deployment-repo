@@ -6,10 +6,13 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { User } from './entities/user.entity';
 import { DataSource, Repository } from 'typeorm';
 import { WINSTON_MODULE_NEST_PROVIDER } from 'nest-winston';
+import { CACHE_MANAGER } from '@nestjs/cache-manager';
+import { Cache } from 'cache-manager';
 
 @Injectable()
 export class UserService {
   constructor(
+    @Inject(CACHE_MANAGER) private cacheManager: Cache,
     private readonly dataSource:DataSource,
     @Inject(WINSTON_MODULE_NEST_PROVIDER) private readonly logger:LoggerService
   ){}
@@ -161,7 +164,7 @@ export class UserService {
         response.push(...appendPropertyNotActive)
       }
       
-      
+      await this.cacheManager.set(`mento:${language}`, response);
       return response
     }catch(e){
       if (e instanceof Error) {
