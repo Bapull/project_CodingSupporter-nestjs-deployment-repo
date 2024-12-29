@@ -27,8 +27,20 @@ import * as winston from 'winston'
 import { WinstonModule } from 'nest-winston';
 import { APP_FILTER } from '@nestjs/core';
 import { HttpFilter } from './setting/http.filter';
+import { CacheModule } from '@nestjs/cache-manager';
+import { redisStore } from 'cache-manager-redis-yet';
 @Module({
   imports: [
+    CacheModule.registerAsync({
+      isGlobal: true,
+      inject:[ConfigService],
+      useFactory:async (config: ConfigService)=>({
+        ttl: 60000,
+        store: await redisStore({
+          url:config.get<string>('REDIS_URL')
+        })
+      })
+    }),
     ConfigModule.forRoot({
       isGlobal: true
     }),

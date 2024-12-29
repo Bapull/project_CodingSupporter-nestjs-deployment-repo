@@ -23,6 +23,7 @@
   "dependencies": {
     "@langchain/core": "^0.3.13",
     "@langchain/openai": "^0.3.8",
+    "@nestjs/cache-manager": "^2.3.0",
     "@nestjs/common": "^10.0.0",
     "@nestjs/config": "^3.2.3",
     "@nestjs/core": "^10.0.0",
@@ -34,6 +35,8 @@
     "@nestjs/typeorm": "^10.0.2",
     "@nestjs/websockets": "^10.4.6",
     "aws-sdk": "^2.1691.0",
+    "cache-manager": "^5.7.6",
+    "cache-manager-redis-yet": "^5.1.5",
     "class-transformer": "^0.5.1",
     "class-validator": "^0.14.1",
     "connect-redis": "^7.1.1",
