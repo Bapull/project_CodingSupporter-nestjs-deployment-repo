@@ -36,6 +36,7 @@
     "@nestjs/websockets": "^10.4.6",
     "aws-sdk": "^2.1691.0",
     "cache-manager": "^5.7.6",
+    "cache-manager-redis-yet": "^5.1.5",
     "class-transformer": "^0.5.1",
     "class-validator": "^0.14.1",
     "connect-redis": "^7.1.1",

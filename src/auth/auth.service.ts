@@ -87,7 +87,7 @@ export class AuthService {
       const sessions:number[] = [];
 
       do{
-        const reply = await this.redisClient.scan(cursor, 'MATCH','sess:*','COUNT','100')
+        const reply = await this.redisClient.scan(cursor, {MATCH: 'sess:*',COUNT: 100})
         cursor = reply['cursor'];
         const keys:string[] = reply['keys'];
         const sessionDatas:number[] = await Promise.all(keys.map(async (key)=>{
