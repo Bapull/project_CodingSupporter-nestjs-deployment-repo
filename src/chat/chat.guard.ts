@@ -15,7 +15,7 @@ export class ChatGuard implements CanActivate {
     const client = context.switchToWs().getClient()
 
     const cookies = cookie.parse(client.handshake.headers.cookie || '')
-    const connectSid = cookies['connect.sid']
+    const connectSid = cookies['connect.sid'] // 세션아이디 찾기
 
     if(!connectSid){
       return false;
@@ -29,7 +29,7 @@ export class ChatGuard implements CanActivate {
     if(!userId){
       return false;
     }
-    client.data = userId
+    client.data = userId // 유저 정보를 저장해서 gateway에서 인가작업을 수행
     return true
   }
 }

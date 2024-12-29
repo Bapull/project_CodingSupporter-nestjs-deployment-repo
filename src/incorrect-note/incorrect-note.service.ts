@@ -16,15 +16,15 @@ export class IncorrectNoteService {
     private readonly s3Service: S3Service,
     @Inject(WINSTON_MODULE_NEST_PROVIDER) private readonly logger:LoggerService
   ) {}
-
+  // 생성된 오답노트 저장장
   async saveNote(dto: SaveIncorrectNoteDto, userId: number) {
     let savedNote = null;
     const queryRunner = await this.dataSource.createQueryRunner()
     await queryRunner.connect()
     await queryRunner.startTransaction()
     try{
-      const noteName = (`${dto.id}`+dto.mdFile.match(/-------------------\n(.*)\n/)[1].trim()+'.md').replace('..','.');
-      await this.s3Service.uploadMdFile(dto.mdFile,noteName);
+      const noteName = (`${dto.id}`+dto.mdFile.match(/-------------------\n(.*)\n/)[1].trim()+'.md').replace('..','.'); // md파일에서 제목부분만 정규식으로 추출
+      await this.s3Service.uploadMdFile(dto.mdFile,noteName); // 버킷 업로드
       const newNote = new IncorrectNote()
       newNote.language = dto.language,
       newNote.errorType = parseInt(dto.errorType)
@@ -59,10 +59,10 @@ export class IncorrectNoteService {
     }
     return {
       noteInfo:note,
-      mdFile:await this.s3Service.downloadMdFile(fileName)
+      mdFile:await this.s3Service.downloadMdFile(fileName) // 버킷에서 md파일 다운로드
     }
   }
-
+  // 유저가 가지고 있는 폴더정보 검색
   async folder(userId:number, userPosition:number){
     const column = userPosition == 1 ? 'mentoId': 'studentId'
     const count = await this.dataSource.createQueryBuilder()
@@ -81,7 +81,7 @@ export class IncorrectNoteService {
     }
     return result
   }
-  
+  // 유저가 소유중인 오답노트의 에러 타입별 개수 반환
   async errorInfo(userId:number, userPosition:number){
     const column = userPosition == 1 ? 'mentoId': 'studentId'
     const count = await this.dataSource.createQueryBuilder()
@@ -99,7 +99,7 @@ export class IncorrectNoteService {
     }
     return result
   }
-
+  // 특정 language와 error type을 가지는 오답노트 전부 조회
   async findByLanguageAndErrorType(id: number, language: string, errorType: string, userPosition: number) {
     const column = userPosition == 1 ? 'mentoId' : 'studentId';
     return await this.dataSource.createQueryBuilder()
@@ -152,7 +152,7 @@ export class IncorrectNoteService {
     }
     await this.dataSource.manager.delete(IncorrectNote,{id:parseInt(id)})
   }
-
+  // 언어별 오답노트 수 검색
   async graphInfo(userId: number,userPosition:number){
     const column = userPosition == 1 ? 'mentoId' : 'studentId';
     const info = await this.dataSource.createQueryBuilder()

@@ -109,9 +109,10 @@ export class UserService {
       await queryRunner.release()
     }
   }
-
+  // 유저들이 멘토이고 찾고자 하는 언어가 useLanguage에 포함되어있는지 확인
   async isMentoAndIsProper(ids:number[],language:string){
     try{
+      // 배열 섞기
       const getRandomItems = (arr, count) => {
         const shuffled = [...arr];
         for (let i = shuffled.length - 1; i > 0; i--) {
@@ -123,6 +124,7 @@ export class UserService {
   
       let response = []
       if(ids.length > 0){
+        // 멘토이면서 찾고자 하는 language를 가지고 있는지 확인
         const user = await this.dataSource.createQueryBuilder()
         .select('user.id')
         .addSelect('user.name')
@@ -134,13 +136,13 @@ export class UserService {
         .andWhere('user.id IN (:...ids)',{ids})
         .andWhere('user.useLanguage LIKE :language', {language: `%"${language}"%`})
         .getMany()
-        
+        // 세션에서 찾은 사람은 접속중인 사람임으로 isActive:true 정보를 추가
         const appendPropertyUser = user.map((item)=>{
           return {...item, isActive:true}
         })
         response = getRandomItems(appendPropertyUser, 5)
       }
-      
+      // 접속중인 멘토가 부족할경우 db에서 추가 탐색
       if(response.length < 5){
         const notActiveUser = await this.dataSource.createQueryBuilder()
         .select('user.id')
@@ -152,19 +154,19 @@ export class UserService {
         .where('user.useLanguage LIKE :language',{language: `%"${language}"%`})
         .andWhere('user.position = 1')
         .getMany()
-        
+        // 찾은 유저중에 접속중인 유저는 제외
         const setNotActiveUser = notActiveUser.filter((item)=>{
           return !ids.includes(item.id)
         })
-  
+        // 접속중이지 않은 유저를 부족한 만큼만 결과에 추가
         const shuffledNotActiveUser = getRandomItems(setNotActiveUser, 5 - response.length)
         const appendPropertyNotActive = shuffledNotActiveUser.map((item)=>{
-          return {...item, isActive:false}
+          return {...item, isActive:false} // 접속중이지 않으므로 isActive:false를 추가
         })
         response.push(...appendPropertyNotActive)
       }
-      
-      await this.cacheManager.set(`mento:${language}`, response);
+      // 캐시 저장
+      await this.cacheManager.set(`mento:${language}`, response, 60000);
       return response
     }catch(e){
       if (e instanceof Error) {
